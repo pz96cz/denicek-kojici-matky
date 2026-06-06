@@ -144,8 +144,10 @@ StopFeedingIntent → FeedingService.endSession()
    ├─ Validace: existuje aktivní sezení? → jinak no-op (idempotence)
    ├─ session.endedAt = now
    ├─ LiveActivityManager.end()
-   ├─ Otevře PumpedMlSheet v hlavní app
-   ├─ User zadá ml (nebo skipne) → session.pumpedMl
+   ├─ Otevře hlavní app (App Intent flag .opensAppWhenRun = true) a routne na PumpedMlSheet.
+   │  Pokud uživatel app neotevře (např. zruší unlock), PumpedMlSheet se ukáže
+   │  při příštím otevření appky, dokud session.pumpedMl není vyplněn ani explicit-skip.
+   ├─ User zadá ml nebo skipne → session.pumpedMl (Int? — nil zůstává jen pokud sheet zatím neviděl)
    └─ ReminderScheduler.scheduleAfter(session.endedAt + interval)
 ```
 
@@ -347,7 +349,7 @@ Tlačítka volají App Intents (`SwitchBreastIntent`, `StopFeedingIntent`). Time
 - **Konec kojení** (`endSession`) → notifikace na `endedAt + reminderIntervalMinutes`.
 - **Start kojení** (`startSession`) → cancel pending reminder.
 - **Snooze tap** z notifikace → cancel původní, schedule nová na `now + snoozeMinutes`.
-- **Změna intervalu v Nastavení** → pokud pending reminder existuje, přeplánuje na `lastSession.endedAt + nový_interval`.
+- **Změna intervalu v Nastavení** → pokud pending reminder existuje, přeplánuje na `lastSession.endedAt + nový_interval`. Pokud takto vypočtený čas leží už v minulosti (interval byl výrazně zkrácen), notifikace se doručí **okamžitě** (UNNotificationCenter s `trigger == nil` to udělá automaticky).
 - **Vypnutí remindrů v Nastavení** → cancel pending, dál nic neplánuje.
 
 **Identifier:** všechny reminder notifikace mají identifier `"feeding-reminder"`. Vždy maximálně 1 v queue, snadné rušení přes `removePendingNotificationRequests(withIdentifiers: ["feeding-reminder"])`.
@@ -367,7 +369,7 @@ Actions:
 ### Action handling
 
 V `AppDelegate.userNotificationCenter(_:didReceive:withCompletionHandler:)`:
-- `feeding-now-action` → otevře app, zavolá `FeedingService.startSession(...)` s default prsem (alternuje od posledního sezení).
+- `feeding-now-action` → otevře app, zavolá `FeedingService.startSession(breast: lastSession.initialBreast.opposite)`. Pokud žádné předchozí sezení neexistuje, default je `.left`. Pokud byly v posledním sezení přepnutí prsa, alternuje od **posledního** prsa, ne od initial — tedy `session.currentBreast.opposite`.
 - `snooze-15-action` / `snooze-30-action` → cancel pending, schedule nový reminder za 15 / 30 min. App se neotvírá.
 - Default (tap mimo akci) → otevře app na HomeView.
 
