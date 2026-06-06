@@ -138,11 +138,12 @@
 				};
 			};
 			buildConfigurationList = 2CA997832FD4A5C1009D608F /* Build configuration list for PBXProject "Kojeni" */;
-			developmentRegion = en;
+			developmentRegion = cs;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				cs,
 			);
 			mainGroup = 2CA9977F2FD4A5C1009D608F;
 			minimizedProjectReferenceProxies = 1;

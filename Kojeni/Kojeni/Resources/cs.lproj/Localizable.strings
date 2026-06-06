@@ -1,0 +1,46 @@
+/* TabView labels */
+"tab.home" = "Domů";
+"tab.history" = "Historie";
+"tab.settings" = "Nastavení";
+
+/* Home */
+"home.title" = "Domů";
+"home.button.start" = "Kojit";
+"home.button.stop" = "Stop";
+"home.button.switch" = "Přehodit prso";
+"home.diaper.pee" = "Čůrání";
+"home.diaper.poo" = "Kakání";
+"home.last_feeding.prefix" = "Poslední kojení: před ";
+"home.no_feeding_yet" = "Zatím žádné kojení";
+
+/* History */
+"history.title" = "Historie";
+"history.segment.today" = "Dnes";
+"history.segment.week" = "Týden";
+"history.segment.list" = "Seznam";
+"history.segment.stats" = "Statistiky";
+
+/* Settings */
+"settings.title" = "Nastavení";
+"settings.interval" = "Interval mezi kojeními";
+"settings.reminders_enabled" = "Připomínky zapnuté";
+"settings.about.version" = "Verze";
+
+/* Onboarding */
+"onboarding.welcome" = "Vítej v Kojení 🤱";
+"onboarding.subtitle" = "Po každém kojení ti připomeneme další krmení.";
+"onboarding.interval_prompt" = "Jak často chceš připomenout?";
+"onboarding.done" = "Hotovo";
+
+/* Breast */
+"breast.left" = "Levé";
+"breast.right" = "Pravé";
+
+/* Diaper consistency */
+"consistency.loose" = "Řídké";
+"consistency.normal" = "Normální";
+"consistency.hard" = "Tvrdé";
+
+/* Errors / banners */
+"error.save_failed" = "Nepodařilo se uložit, zkus znovu.";
+"banner.notifications_disabled" = "Reminder nefunguje — zapni notifikace v Nastaveních.";
