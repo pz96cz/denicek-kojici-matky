@@ -9,7 +9,7 @@ enum InMemoryContainer {
         let schema = Schema([
             FeedingSession.self,
             BreastChange.self,
-            // DiaperEvent.self,   // odkomentuj v Task 5
+            DiaperEvent.self,
             // AppSettings.self,   // odkomentuj v Task 6
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
