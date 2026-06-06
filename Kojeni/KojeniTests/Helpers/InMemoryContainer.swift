@@ -1,0 +1,18 @@
+import Foundation
+import SwiftData
+@testable import Kojeni
+
+enum InMemoryContainer {
+
+    @MainActor
+    static func make() -> ModelContainer {
+        let schema = Schema([
+            FeedingSession.self,
+            BreastChange.self,
+            // DiaperEvent.self,   // odkomentuj v Task 5
+            // AppSettings.self,   // odkomentuj v Task 6
+        ])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        return try! ModelContainer(for: schema, configurations: [config])
+    }
+}
