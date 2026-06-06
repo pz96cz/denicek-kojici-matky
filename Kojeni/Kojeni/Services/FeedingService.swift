@@ -18,4 +18,17 @@ final class FeedingService {
         )
         return try context.fetch(descriptor).first
     }
+
+    /// Spustí nové sezení s daným prsem.
+    /// Throws `sessionAlreadyActive` pokud už nějaké aktivní existuje.
+    @discardableResult
+    func startSession(breast: Breast, at date: Date = .now) throws -> FeedingSession {
+        if try activeSession() != nil {
+            throw FeedingServiceError.sessionAlreadyActive
+        }
+        let session = FeedingSession(startedAt: date, initialBreast: breast)
+        context.insert(session)
+        try context.save()
+        return session
+    }
 }
