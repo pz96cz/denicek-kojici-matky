@@ -897,15 +897,25 @@ struct BreastPickerSheet: View {
         .presentationDetents([.medium])
     }
 
+    @ViewBuilder
     private func breastButton(for breast: Breast) -> some View {
-        Button(action: { start(with: breast) }) {
-            Text(label(for: breast))
-                .font(.system(size: 26, weight: .bold))
-                .frame(maxWidth: .infinity)
-                .frame(height: 80)
+        let label = Text(self.label(for: breast))
+            .font(.system(size: 26, weight: .bold))
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+        // `.borderedProminent` a `.bordered` jsou různé konkrétní typy
+        // (`BorderedProminentButtonStyle` vs `BorderedButtonStyle`), takže
+        // je nejde sdílet přes ternární výraz — Swift type-inference odmítne.
+        // Větvíme přes @ViewBuilder.
+        if suggestedBreast == breast {
+            Button(action: { start(with: breast) }) { label }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+        } else {
+            Button(action: { start(with: breast) }) { label }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
         }
-        .buttonStyle(suggestedBreast == breast ? .borderedProminent : .bordered)
-        .controlSize(.large)
     }
 
     private func label(for breast: Breast) -> String {
