@@ -6,7 +6,9 @@
 
 **Architecture:** Native iOS 26.5+ s SwiftUI + SwiftData. Single App target + Test target. Žádný Widget Extension v tomto plánu (přidá ho Plan 3 — Live Activity). Modely jsou izolované od UI, services se v tomto plánu ještě nepíšou. `@Environment(\.modelContext)` se předává z `RootView` dolů. Testy proti in-memory `ModelContainer`.
 
-**Tech Stack:** Swift 6+, Xcode 26+, iOS 26.5+, SwiftUI, SwiftData, XCTest. Žádné externí dependency.
+**Tech Stack:** Swift 6+, Xcode 26+, iOS 26.5+, SwiftUI, SwiftData, **Swift Testing**. Žádné externí dependency.
+
+> Plan používá Swift Testing (Xcode 26 default), ne XCTest. Suite struct místo XCTestCase class, `@Test` místo `func test_*`, `#expect(...)` místo `XCTAssertEqual/True/False/Nil`.
 
 ---
 
@@ -171,26 +173,29 @@ struct KojeniApp: App {
 
 V Xcode pravým klikem na složku `KojeniTests` v navigátoru → `New File…` → `Swift File` → název `EnumsTests` → ulož do `KojeniTests/Models/` (vytvoř složku Models, pokud neexistuje).
 
+Smaž auto-generated `KojeniTests/KojeniTests.swift` (placeholder z wizardu) — nahradíme ho reálnými testy.
+
 Vlož obsah `KojeniTests/Models/EnumsTests.swift`:
 
 ```swift
-import XCTest
+import Testing
 @testable import Kojeni
 
-final class EnumsTests: XCTestCase {
+@Suite
+struct EnumsTests {
 
-    func test_breast_opposite_left_returns_right() {
-        XCTAssertEqual(Breast.left.opposite, .right)
+    @Test func breast_opposite_left_returns_right() {
+        #expect(Breast.left.opposite == .right)
     }
 
-    func test_breast_opposite_right_returns_left() {
-        XCTAssertEqual(Breast.right.opposite, .left)
+    @Test func breast_opposite_right_returns_left() {
+        #expect(Breast.right.opposite == .left)
     }
 
-    func test_breast_opposite_is_involution() {
+    @Test func breast_opposite_is_involution() {
         // dvojnásobné použití vrátí původní hodnotu
-        XCTAssertEqual(Breast.left.opposite.opposite, .left)
-        XCTAssertEqual(Breast.right.opposite.opposite, .right)
+        #expect(Breast.left.opposite.opposite == .left)
+        #expect(Breast.right.opposite.opposite == .right)
     }
 }
 ```
@@ -305,48 +310,49 @@ V Xcode pravým klikem na `KojeniTests/Models` → `New File…` → `Swift File
 Obsah:
 
 ```swift
-import XCTest
+import Testing
+import Foundation
 import SwiftData
 @testable import Kojeni
 
-@MainActor
-final class FeedingSessionTests: XCTestCase {
+@Suite @MainActor
+struct FeedingSessionTests {
 
-    func test_new_session_is_active() {
+    @Test func new_session_is_active() {
         let session = FeedingSession(startedAt: .now, initialBreast: .left)
-        XCTAssertTrue(session.isActive)
-        XCTAssertNil(session.endedAt)
+        #expect(session.isActive)
+        #expect(session.endedAt == nil)
     }
 
-    func test_ended_session_is_not_active() {
+    @Test func ended_session_is_not_active() {
         let start = Date(timeIntervalSinceReferenceDate: 0)
         let end = start.addingTimeInterval(600)
         let session = FeedingSession(startedAt: start, initialBreast: .left)
         session.endedAt = end
-        XCTAssertFalse(session.isActive)
+        #expect(!session.isActive)
     }
 
-    func test_duration_for_ended_session() {
+    @Test func duration_for_ended_session() {
         let start = Date(timeIntervalSinceReferenceDate: 0)
         let end = start.addingTimeInterval(900)   // 15 min
         let session = FeedingSession(startedAt: start, initialBreast: .left)
         session.endedAt = end
-        XCTAssertEqual(session.duration, 900, accuracy: 0.001)
+        #expect(abs(session.duration - 900) < 0.001)
     }
 
-    func test_duration_for_active_session_uses_now() {
+    @Test func duration_for_active_session_uses_now() {
         let start = Date.now.addingTimeInterval(-60)
         let session = FeedingSession(startedAt: start, initialBreast: .left)
         // Tolerance 0.5s kvůli paralelnímu běhu testu
-        XCTAssertEqual(session.duration, 60, accuracy: 0.5)
+        #expect(abs(session.duration - 60) < 0.5)
     }
 
-    func test_currentBreast_without_changes_returns_initial() {
+    @Test func currentBreast_without_changes_returns_initial() {
         let session = FeedingSession(startedAt: .now, initialBreast: .right)
-        XCTAssertEqual(session.currentBreast, .right)
+        #expect(session.currentBreast == .right)
     }
 
-    func test_currentBreast_returns_last_change() {
+    @Test func currentBreast_returns_last_change() {
         let session = FeedingSession(startedAt: .now, initialBreast: .left)
         let t1 = Date.now.addingTimeInterval(60)
         let t2 = Date.now.addingTimeInterval(120)
@@ -354,10 +360,10 @@ final class FeedingSessionTests: XCTestCase {
             BreastChange(at: t1, to: .right),
             BreastChange(at: t2, to: .left),
         ]
-        XCTAssertEqual(session.currentBreast, .left)
+        #expect(session.currentBreast == .left)
     }
 
-    func test_currentBreast_sorts_changes_by_time() {
+    @Test func currentBreast_sorts_changes_by_time() {
         // Pořadí v poli neodpovídá chronologii — currentBreast musí seřadit podle `at`.
         let session = FeedingSession(startedAt: .now, initialBreast: .left)
         let t1 = Date.now.addingTimeInterval(60)
@@ -366,10 +372,10 @@ final class FeedingSessionTests: XCTestCase {
             BreastChange(at: t2, to: .left),
             BreastChange(at: t1, to: .right),
         ]
-        XCTAssertEqual(session.currentBreast, .left)
+        #expect(session.currentBreast == .left)
     }
 
-    func test_swiftdata_roundtrip() throws {
+    @Test func swiftdata_roundtrip() throws {
         let container = InMemoryContainer.make()
         let context = ModelContext(container)
         let start = Date(timeIntervalSinceReferenceDate: 1000)
@@ -379,10 +385,10 @@ final class FeedingSessionTests: XCTestCase {
         try context.save()
 
         let fetched = try context.fetch(FetchDescriptor<FeedingSession>())
-        XCTAssertEqual(fetched.count, 1)
-        XCTAssertEqual(fetched.first?.initialBreast, .left)
-        XCTAssertEqual(fetched.first?.breastChanges.count, 1)
-        XCTAssertEqual(fetched.first?.breastChanges.first?.to, .right)
+        #expect(fetched.count == 1)
+        #expect(fetched.first?.initialBreast == .left)
+        #expect(fetched.first?.breastChanges.count == 1)
+        #expect(fetched.first?.breastChanges.first?.to == .right)
     }
 }
 ```
@@ -461,7 +467,7 @@ final class FeedingSession {
 
 V Xcode **⌘ U**.
 
-Expected: všechny testy v `FeedingSessionTests` zelené (8 testů). Pokud `test_swiftdata_roundtrip` selže s "Schema neobsahuje typ", zkontroluj že `InMemoryContainer.make()` obsahuje `FeedingSession.self` a `BreastChange.self`.
+Expected: všechny testy v `FeedingSessionTests` zelené (8 testů). Pokud `swiftdata_roundtrip` selže s "Schema neobsahuje typ", zkontroluj že `InMemoryContainer.make()` obsahuje `FeedingSession.self` a `BreastChange.self`.
 
 - [ ] **Step 7: Commit**
 
@@ -489,7 +495,7 @@ V `KojeniTests/Models/FeedingSessionTests.swift` přidej před závěrečnou `}`
 ```swift
     // MARK: - segments()
 
-    func test_segments_for_session_without_changes_returns_single_segment() {
+    @Test func segments_for_session_without_changes_returns_single_segment() {
         let start = Date(timeIntervalSinceReferenceDate: 0)
         let end = start.addingTimeInterval(600)
         let session = FeedingSession(startedAt: start, initialBreast: .left)
@@ -497,13 +503,13 @@ V `KojeniTests/Models/FeedingSessionTests.swift` přidej před závěrečnou `}`
 
         let segments = session.segments()
 
-        XCTAssertEqual(segments.count, 1)
-        XCTAssertEqual(segments[0].breast, .left)
-        XCTAssertEqual(segments[0].start, start)
-        XCTAssertEqual(segments[0].end, end)
+        #expect(segments.count == 1)
+        #expect(segments[0].breast == .left)
+        #expect(segments[0].start == start)
+        #expect(segments[0].end == end)
     }
 
-    func test_segments_for_session_with_one_change_returns_two_segments() {
+    @Test func segments_for_session_with_one_change_returns_two_segments() {
         let start = Date(timeIntervalSinceReferenceDate: 0)
         let mid = start.addingTimeInterval(720)   // 12 min
         let end = start.addingTimeInterval(1080)  // 18 min
@@ -513,30 +519,31 @@ V `KojeniTests/Models/FeedingSessionTests.swift` přidej před závěrečnou `}`
 
         let segments = session.segments()
 
-        XCTAssertEqual(segments.count, 2)
-        XCTAssertEqual(segments[0].breast, .left)
-        XCTAssertEqual(segments[0].start, start)
-        XCTAssertEqual(segments[0].end, mid)
-        XCTAssertEqual(segments[1].breast, .right)
-        XCTAssertEqual(segments[1].start, mid)
-        XCTAssertEqual(segments[1].end, end)
+        #expect(segments.count == 2)
+        #expect(segments[0].breast == .left)
+        #expect(segments[0].start == start)
+        #expect(segments[0].end == mid)
+        #expect(segments[1].breast == .right)
+        #expect(segments[1].start == mid)
+        #expect(segments[1].end == end)
     }
 
-    func test_segments_for_active_session_uses_now_as_end_of_last_segment() {
+    @Test func segments_for_active_session_uses_now_as_end_of_last_segment() {
         let start = Date.now.addingTimeInterval(-300)   // před 5 min
         let session = FeedingSession(startedAt: start, initialBreast: .left)
         // endedAt == nil → aktivní
 
         let segments = session.segments()
 
-        XCTAssertEqual(segments.count, 1)
-        XCTAssertEqual(segments[0].breast, .left)
+        #expect(segments.count == 1)
+        #expect(segments[0].breast == .left)
         // tolerance 1s kvůli paralelnímu běhu
-        XCTAssertEqual(segments[0].end.timeIntervalSinceReferenceDate,
-                       Date.now.timeIntervalSinceReferenceDate, accuracy: 1.0)
+        let diff = abs(segments[0].end.timeIntervalSinceReferenceDate
+                       - Date.now.timeIntervalSinceReferenceDate)
+        #expect(diff < 1.0)
     }
 
-    func test_segments_sorts_changes_by_time() {
+    @Test func segments_sorts_changes_by_time() {
         let start = Date(timeIntervalSinceReferenceDate: 0)
         let t1 = start.addingTimeInterval(60)
         let t2 = start.addingTimeInterval(120)
@@ -551,13 +558,13 @@ V `KojeniTests/Models/FeedingSessionTests.swift` přidej před závěrečnou `}`
 
         let segments = session.segments()
 
-        XCTAssertEqual(segments.count, 3)
-        XCTAssertEqual(segments[0].breast, .left)
-        XCTAssertEqual(segments[0].end, t1)
-        XCTAssertEqual(segments[1].breast, .right)
-        XCTAssertEqual(segments[1].end, t2)
-        XCTAssertEqual(segments[2].breast, .left)
-        XCTAssertEqual(segments[2].end, end)
+        #expect(segments.count == 3)
+        #expect(segments[0].breast == .left)
+        #expect(segments[0].end == t1)
+        #expect(segments[1].breast == .right)
+        #expect(segments[1].end == t2)
+        #expect(segments[2].breast == .left)
+        #expect(segments[2].end == end)
     }
 ```
 
@@ -629,32 +636,33 @@ V Xcode pravým klikem na `KojeniTests/Models` → `New File…` → `Swift File
 Obsah:
 
 ```swift
-import XCTest
+import Testing
+import Foundation
 import SwiftData
 @testable import Kojeni
 
-@MainActor
-final class DiaperEventTests: XCTestCase {
+@Suite @MainActor
+struct DiaperEventTests {
 
-    func test_pee_event_has_no_consistency() {
+    @Test func pee_event_has_no_consistency() {
         let event = DiaperEvent(at: .now, kind: .pee)
-        XCTAssertEqual(event.kind, .pee)
-        XCTAssertNil(event.consistency)
+        #expect(event.kind == .pee)
+        #expect(event.consistency == nil)
     }
 
-    func test_poo_event_with_consistency() {
+    @Test func poo_event_with_consistency() {
         let event = DiaperEvent(at: .now, kind: .poo, consistency: .normal)
-        XCTAssertEqual(event.kind, .poo)
-        XCTAssertEqual(event.consistency, .normal)
+        #expect(event.kind == .poo)
+        #expect(event.consistency == .normal)
     }
 
-    func test_pee_event_ignores_consistency_argument() {
+    @Test func pee_event_ignores_consistency_argument() {
         // Pee nikdy nesmí mít konzistenci, i kdyby ji někdo poslal.
         let event = DiaperEvent(at: .now, kind: .pee, consistency: .normal)
-        XCTAssertNil(event.consistency, "Pee event must drop consistency argument")
+        #expect(event.consistency == nil, "Pee event must drop consistency argument")
     }
 
-    func test_swiftdata_roundtrip() throws {
+    @Test func swiftdata_roundtrip() throws {
         let container = InMemoryContainer.make()
         let context = ModelContext(container)
         let event = DiaperEvent(at: .now, kind: .poo, consistency: .loose)
@@ -662,9 +670,9 @@ final class DiaperEventTests: XCTestCase {
         try context.save()
 
         let fetched = try context.fetch(FetchDescriptor<DiaperEvent>())
-        XCTAssertEqual(fetched.count, 1)
-        XCTAssertEqual(fetched.first?.kind, .poo)
-        XCTAssertEqual(fetched.first?.consistency, .loose)
+        #expect(fetched.count == 1)
+        #expect(fetched.first?.kind == .poo)
+        #expect(fetched.first?.consistency == .loose)
     }
 }
 ```
@@ -745,36 +753,37 @@ V Xcode pravým klikem na `KojeniTests/Models` → `New File…` → `Swift File
 Obsah:
 
 ```swift
-import XCTest
+import Testing
+import Foundation
 import SwiftData
 @testable import Kojeni
 
-@MainActor
-final class AppSettingsTests: XCTestCase {
+@Suite @MainActor
+struct AppSettingsTests {
 
-    func test_default_values() {
+    @Test func default_values() {
         let settings = AppSettings()
-        XCTAssertEqual(settings.reminderIntervalMinutes, 180)
-        XCTAssertTrue(settings.remindersEnabled)
+        #expect(settings.reminderIntervalMinutes == 180)
+        #expect(settings.remindersEnabled)
     }
 
-    func test_custom_values_in_range() {
+    @Test func custom_values_in_range() {
         let settings = AppSettings(reminderIntervalMinutes: 120, remindersEnabled: false)
-        XCTAssertEqual(settings.reminderIntervalMinutes, 120)
-        XCTAssertFalse(settings.remindersEnabled)
+        #expect(settings.reminderIntervalMinutes == 120)
+        #expect(!settings.remindersEnabled)
     }
 
-    func test_interval_below_minimum_is_clamped() {
+    @Test func interval_below_minimum_is_clamped() {
         let settings = AppSettings(reminderIntervalMinutes: 10)
-        XCTAssertEqual(settings.reminderIntervalMinutes, 30, "Below-min should clamp to 30")
+        #expect(settings.reminderIntervalMinutes == 30, "Below-min should clamp to 30")
     }
 
-    func test_interval_above_maximum_is_clamped() {
+    @Test func interval_above_maximum_is_clamped() {
         let settings = AppSettings(reminderIntervalMinutes: 9999)
-        XCTAssertEqual(settings.reminderIntervalMinutes, 360, "Above-max should clamp to 360")
+        #expect(settings.reminderIntervalMinutes == 360, "Above-max should clamp to 360")
     }
 
-    func test_loadOrCreate_returns_existing() throws {
+    @Test func loadOrCreate_returns_existing() throws {
         let container = InMemoryContainer.make()
         let context = ModelContext(container)
         let existing = AppSettings(reminderIntervalMinutes: 240)
@@ -783,22 +792,22 @@ final class AppSettingsTests: XCTestCase {
 
         let loaded = try AppSettings.loadOrCreate(in: context)
 
-        XCTAssertEqual(loaded.reminderIntervalMinutes, 240)
+        #expect(loaded.reminderIntervalMinutes == 240)
         // Žádný nový řádek nepřibyl
         let count = try context.fetch(FetchDescriptor<AppSettings>()).count
-        XCTAssertEqual(count, 1)
+        #expect(count == 1)
     }
 
-    func test_loadOrCreate_creates_with_defaults_when_missing() throws {
+    @Test func loadOrCreate_creates_with_defaults_when_missing() throws {
         let container = InMemoryContainer.make()
         let context = ModelContext(container)
 
         let loaded = try AppSettings.loadOrCreate(in: context)
 
-        XCTAssertEqual(loaded.reminderIntervalMinutes, 180)
-        XCTAssertTrue(loaded.remindersEnabled)
+        #expect(loaded.reminderIntervalMinutes == 180)
+        #expect(loaded.remindersEnabled)
         let count = try context.fetch(FetchDescriptor<AppSettings>()).count
-        XCTAssertEqual(count, 1)
+        #expect(count == 1)
     }
 }
 ```
