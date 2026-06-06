@@ -31,4 +31,17 @@ final class FeedingService {
         try context.save()
         return session
     }
+
+    /// Přepne na opačné prso v aktivním sezení. No-op když žádné neběží.
+    /// Vrací nové aktuální prso, nebo `nil` při no-op.
+    @discardableResult
+    func switchBreast(at date: Date = .now) throws -> Breast? {
+        guard let session = try activeSession() else { return nil }
+        let next = session.currentBreast.opposite
+        let change = BreastChange(at: date, to: next)
+        change.session = session
+        session.breastChanges.append(change)
+        try context.save()
+        return next
+    }
 }

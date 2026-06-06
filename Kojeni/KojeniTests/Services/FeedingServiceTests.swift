@@ -59,4 +59,60 @@ struct FeedingServiceTests {
         #expect(second.initialBreast == .right)
         #expect(second.isActive)
     }
+
+    // MARK: - switchBreast
+
+    @Test func switchBreast_appends_change_and_switches_to_opposite() throws {
+        let (service, _) = makeService()
+        _ = try service.startSession(breast: .left)
+
+        let newBreast = try service.switchBreast()
+
+        #expect(newBreast == .right)
+        let session = try service.activeSession()
+        #expect(session?.breastChanges.count == 1)
+        #expect(session?.currentBreast == .right)
+        #expect(session?.breastChanges.first?.to == .right)
+    }
+
+    @Test func switchBreast_does_not_change_startedAt() throws {
+        let (service, _) = makeService()
+        let session = try service.startSession(breast: .left)
+        let originalStart = session.startedAt
+
+        _ = try service.switchBreast()
+
+        let after = try service.activeSession()
+        #expect(after?.startedAt == originalStart)
+    }
+
+    @Test func switchBreast_multiple_times_alternates() throws {
+        let (service, _) = makeService()
+        _ = try service.startSession(breast: .left)
+
+        _ = try service.switchBreast()  // → R
+        _ = try service.switchBreast()  // → L
+        _ = try service.switchBreast()  // → R
+
+        let session = try service.activeSession()
+        #expect(session?.breastChanges.count == 3)
+        #expect(session?.currentBreast == .right)
+    }
+
+    @Test func switchBreast_returns_nil_when_no_active_session() throws {
+        let (service, _) = makeService()
+        let result = try service.switchBreast()
+        #expect(result == nil)
+    }
+
+    @Test func switchBreast_uses_provided_date() throws {
+        let (service, _) = makeService()
+        _ = try service.startSession(breast: .left)
+        let when = Date(timeIntervalSinceReferenceDate: 99999)
+
+        _ = try service.switchBreast(at: when)
+
+        let session = try service.activeSession()
+        #expect(session?.breastChanges.first?.at == when)
+    }
 }
