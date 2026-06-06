@@ -32,6 +32,15 @@ final class FeedingService {
         return session
     }
 
+    /// Ukončí aktivní sezení. Idempotentní — no-op když nic neběží.
+    @discardableResult
+    func endSession(at date: Date = .now) throws -> FeedingSession? {
+        guard let session = try activeSession() else { return nil }
+        session.endedAt = date
+        try context.save()
+        return session
+    }
+
     /// Přepne na opačné prso v aktivním sezení. No-op když žádné neběží.
     /// Vrací nové aktuální prso, nebo `nil` při no-op.
     @discardableResult

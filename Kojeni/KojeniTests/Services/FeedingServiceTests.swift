@@ -115,4 +115,42 @@ struct FeedingServiceTests {
         let session = try service.activeSession()
         #expect(session?.breastChanges.first?.at == when)
     }
+
+    // MARK: - endSession
+
+    @Test func endSession_sets_endedAt() throws {
+        let (service, _) = makeService()
+        _ = try service.startSession(breast: .left)
+        let when = Date(timeIntervalSinceReferenceDate: 50000)
+
+        let ended = try service.endSession(at: when)
+
+        #expect(ended?.endedAt == when)
+        #expect(try service.activeSession() == nil)
+    }
+
+    @Test func endSession_returns_nil_when_no_active_session() throws {
+        let (service, _) = makeService()
+        let result = try service.endSession()
+        #expect(result == nil)
+    }
+
+    @Test func endSession_is_idempotent() throws {
+        let (service, _) = makeService()
+        _ = try service.startSession(breast: .left)
+        _ = try service.endSession()
+        // Druhé end po skončení sezení — žádné aktivní, vrátí nil
+        let second = try service.endSession()
+        #expect(second == nil)
+    }
+
+    @Test func can_start_new_session_after_end() throws {
+        let (service, _) = makeService()
+        _ = try service.startSession(breast: .left)
+        _ = try service.endSession()
+
+        let next = try service.startSession(breast: .right)
+        #expect(next.initialBreast == .right)
+        #expect(next.isActive)
+    }
 }
