@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2CA9984D2FD4C840009D608F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CA9984C2FD4C840009D608F /* WidgetKit.framework */; };
+		2CA9984F2FD4C840009D608F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CA9984E2FD4C840009D608F /* SwiftUI.framework */; };
+		2CA9985E2FD4C841009D608F /* KojeniWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2CA9984A2FD4C840009D608F /* KojeniWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		2CA9979E2FD4A7A1009D608F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -14,12 +20,46 @@
 			remoteGlobalIDString = 2CA997872FD4A5C1009D608F;
 			remoteInfo = Kojeni;
 		};
+		2CA9985C2FD4C841009D608F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2CA997802FD4A5C1009D608F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2CA998492FD4C840009D608F;
+			remoteInfo = KojeniWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2CA998632FD4C841009D608F /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				2CA9985E2FD4C841009D608F /* KojeniWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2CA997882FD4A5C1009D608F /* Kojeni.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kojeni.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2CA9979A2FD4A7A1009D608F /* KojeniTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KojeniTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2CA9984A2FD4C840009D608F /* KojeniWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KojeniWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2CA9984C2FD4C840009D608F /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		2CA9984E2FD4C840009D608F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2CA9985F2FD4C841009D608F /* Exceptions for "KojeniWidget" folder in "KojeniWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2CA998492FD4C840009D608F /* KojeniWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2CA9978A2FD4A5C1009D608F /* Kojeni */ = {
@@ -30,6 +70,14 @@
 		2CA9979B2FD4A7A1009D608F /* KojeniTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = KojeniTests;
+			sourceTree = "<group>";
+		};
+		2CA998502FD4C840009D608F /* KojeniWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2CA9985F2FD4C841009D608F /* Exceptions for "KojeniWidget" folder in "KojeniWidgetExtension" target */,
+			);
+			path = KojeniWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -49,6 +97,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2CA998472FD4C840009D608F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2CA9984F2FD4C840009D608F /* SwiftUI.framework in Frameworks */,
+				2CA9984D2FD4C840009D608F /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -57,6 +114,8 @@
 			children = (
 				2CA9978A2FD4A5C1009D608F /* Kojeni */,
 				2CA9979B2FD4A7A1009D608F /* KojeniTests */,
+				2CA998502FD4C840009D608F /* KojeniWidget */,
+				2CA9984B2FD4C840009D608F /* Frameworks */,
 				2CA997892FD4A5C1009D608F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,8 +125,18 @@
 			children = (
 				2CA997882FD4A5C1009D608F /* Kojeni.app */,
 				2CA9979A2FD4A7A1009D608F /* KojeniTests.xctest */,
+				2CA9984A2FD4C840009D608F /* KojeniWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2CA9984B2FD4C840009D608F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2CA9984C2FD4C840009D608F /* WidgetKit.framework */,
+				2CA9984E2FD4C840009D608F /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -80,10 +149,12 @@
 				2CA997842FD4A5C1009D608F /* Sources */,
 				2CA997852FD4A5C1009D608F /* Frameworks */,
 				2CA997862FD4A5C1009D608F /* Resources */,
+				2CA998632FD4C841009D608F /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				2CA9985D2FD4C841009D608F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				2CA9978A2FD4A5C1009D608F /* Kojeni */,
@@ -118,6 +189,28 @@
 			productReference = 2CA9979A2FD4A7A1009D608F /* KojeniTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		2CA998492FD4C840009D608F /* KojeniWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2CA998602FD4C841009D608F /* Build configuration list for PBXNativeTarget "KojeniWidgetExtension" */;
+			buildPhases = (
+				2CA998462FD4C840009D608F /* Sources */,
+				2CA998472FD4C840009D608F /* Frameworks */,
+				2CA998482FD4C840009D608F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2CA998502FD4C840009D608F /* KojeniWidget */,
+			);
+			name = KojeniWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = KojeniWidgetExtension;
+			productReference = 2CA9984A2FD4C840009D608F /* KojeniWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -134,6 +227,9 @@
 					2CA997992FD4A7A1009D608F = {
 						CreatedOnToolsVersion = 26.5;
 						TestTargetID = 2CA997872FD4A5C1009D608F;
+					};
+					2CA998492FD4C840009D608F = {
+						CreatedOnToolsVersion = 26.5;
 					};
 				};
 			};
@@ -154,6 +250,7 @@
 			targets = (
 				2CA997872FD4A5C1009D608F /* Kojeni */,
 				2CA997992FD4A7A1009D608F /* KojeniTests */,
+				2CA998492FD4C840009D608F /* KojeniWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -167,6 +264,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2CA997982FD4A7A1009D608F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2CA998482FD4C840009D608F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -190,6 +294,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2CA998462FD4C840009D608F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -197,6 +308,11 @@
 			isa = PBXTargetDependency;
 			target = 2CA997872FD4A5C1009D608F /* Kojeni */;
 			targetProxy = 2CA9979E2FD4A7A1009D608F /* PBXContainerItemProxy */;
+		};
+		2CA9985D2FD4C841009D608F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2CA998492FD4C840009D608F /* KojeniWidgetExtension */;
+			targetProxy = 2CA9985C2FD4C841009D608F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -428,6 +544,64 @@
 			};
 			name = Release;
 		};
+		2CA998612FD4C841009D608F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KojeniWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KojeniWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cz.zapletal.Kojeni.KojeniWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2CA998622FD4C841009D608F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KojeniWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KojeniWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cz.zapletal.Kojeni.KojeniWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -454,6 +628,15 @@
 			buildConfigurations = (
 				2CA997A12FD4A7A1009D608F /* Debug */,
 				2CA997A22FD4A7A1009D608F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2CA998602FD4C841009D608F /* Build configuration list for PBXNativeTarget "KojeniWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2CA998612FD4C841009D608F /* Debug */,
+				2CA998622FD4C841009D608F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

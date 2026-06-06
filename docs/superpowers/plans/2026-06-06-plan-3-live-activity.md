@@ -96,6 +96,8 @@ kojeni-app/
 
 > Tento task vyžaduje Xcode UI. Implementer (subagent ani CLI) ho udělat nemůže — uživatel musí proklikat New Target wizard.
 
+> **Naming poznámka (Xcode 26 reality):** Xcode si target název rozšíří na `KojeniWidgetExtension` (přidá „Extension" suffix), složka na disku zůstane `KojeniWidget/`. Všechny následné odkazy v tomto plánu na „target KojeniWidget" znamenají **target `KojeniWidgetExtension`**. Bundle ID bude `cz.zapletal.Kojeni.KojeniWidgetExtension`. Entitlement soubor (Task 2) Xcode pojmenuje `KojeniWidgetExtension.entitlements`. Xcode 26 také přidá do šablony `KojeniWidgetControl.swift` (Control Center widget) — Task 7 ho smaže spolu s `KojeniWidget.swift`.
+
 - [ ] **Step 1: V Xcode otevři projekt**
 
 ```bash
