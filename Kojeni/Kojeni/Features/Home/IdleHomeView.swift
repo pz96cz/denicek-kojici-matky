@@ -39,9 +39,7 @@ struct IdleHomeView: View {
             BreastPickerSheet()
         }
         .sheet(isPresented: $showDiaperSheet) {
-            // DiaperSheet napíše Task 11.
-            Text("DiaperSheet (placeholder)")
-                .presentationDetents([.medium])
+            DiaperSheet()
         }
     }
 
