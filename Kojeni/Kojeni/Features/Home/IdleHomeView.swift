@@ -36,10 +36,7 @@ struct IdleHomeView: View {
                 .padding(.bottom)
         }
         .sheet(isPresented: $showBreastPicker) {
-            // BreastPickerSheet napíše Task 8.
-            // Dočasný placeholder, ať jde sheet otevřít.
-            Text("BreastPickerSheet (placeholder)")
-                .presentationDetents([.medium])
+            BreastPickerSheet()
         }
         .sheet(isPresented: $showDiaperSheet) {
             // DiaperSheet napíše Task 11.
