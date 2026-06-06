@@ -48,10 +48,9 @@ struct ActiveSessionView: View {
             .padding(.bottom)
         }
         .sheet(isPresented: $showPumpedMlSheet) {
-            // PumpedMlSheet vznikne v Task 10.
-            // Placeholder dokud sheet neexistuje:
-            Text("PumpedMlSheet (placeholder)")
-                .presentationDetents([.medium])
+            if let id = endedSessionID {
+                PumpedMlSheet(sessionID: id)
+            }
         }
     }
 
