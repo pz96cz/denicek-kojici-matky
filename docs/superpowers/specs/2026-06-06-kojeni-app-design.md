@@ -37,16 +37,16 @@ Jedna maminka, jeden iPhone, vše lokálně. Příští rozšíření (App Store
 
 | Vrstva | Volba | Poznámka |
 |---|---|---|
-| Jazyk | Swift 5.10+ | |
-| IDE | Xcode 15.4+ | |
+| Jazyk | Swift 6+ | |
+| IDE | Xcode 26+ | |
 | UI | SwiftUI | Deklarativně, žádný UIKit. |
-| Persistence | SwiftData | Na pozadí SQLite. Nahradila Core Data od iOS 17. |
+| Persistence | SwiftData | Na pozadí SQLite. |
 | Live Activity | ActivityKit + WidgetKit | Widget Extension target. |
 | Notifikace | UserNotifications | Lokální, s akčními tlačítky. |
-| Graf | Swift Charts | Nativní, iOS 16+. |
-| Akce v Live Activity | App Intents | iOS 17+, volá se i když app neběží. |
+| Graf | Swift Charts | Nativní. |
+| Akce v Live Activity | App Intents | Volá se i když app neběží. |
 
-**Minimální iOS:** **17.0** (SwiftData vyžaduje 17). Live Activities by stačily na 16.1, ale držet jednu cílovku stojí za to.
+**Minimální iOS:** **26.5**. Cílíme jen na maminčin iPhone, který tuto verzi má — žádný důvod podporovat starší. Všechny použité API (SwiftData, ActivityKit, App Intents, Swift Charts) jsou v 26.5 dostupné nativně.
 
 **Cílové zařízení:** jen iPhone, portrét only. Žádný iPad layout.
 

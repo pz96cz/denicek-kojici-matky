@@ -4,46 +4,49 @@
 
 **Goal:** Vytvořit kostru iOS appky — Xcode projekt, kompletní datový model (SwiftData), SwiftData container, prázdnou TabView navigaci a onboarding sheet, který se ukáže při prvním spuštění. Po doběhnutí tohoto plánu appka stojí na nohou, modely jsou plně otestované a další plány staví na hotových datech.
 
-**Architecture:** Native iOS 17+ s SwiftUI + SwiftData. Single App target + Test target. Žádný Widget Extension v tomto plánu (přidá ho Plan 3 — Live Activity). Modely jsou izolované od UI, services se v tomto plánu ještě nepíšou. `@Environment(\.modelContext)` se předává z `RootView` dolů. Testy proti in-memory `ModelContainer`.
+**Architecture:** Native iOS 26.5+ s SwiftUI + SwiftData. Single App target + Test target. Žádný Widget Extension v tomto plánu (přidá ho Plan 3 — Live Activity). Modely jsou izolované od UI, services se v tomto plánu ještě nepíšou. `@Environment(\.modelContext)` se předává z `RootView` dolů. Testy proti in-memory `ModelContainer`.
 
-**Tech Stack:** Swift 5.10+, Xcode 15.4+, iOS 17.0+, SwiftUI, SwiftData, XCTest. Žádné externí dependency.
+**Tech Stack:** Swift 6+, Xcode 26+, iOS 26.5+, SwiftUI, SwiftData, XCTest. Žádné externí dependency.
 
 ---
 
 ## File Structure (po dokončení Plan 1)
 
+> Pozn.: Xcode wizard vždy vytvoří obalovou složku pojmenovanou podle Product Name. Při Product Name `Kojeni` a save lokaci `/Users/pz/Documents/develop/kojeni-app/` vznikne `kojeni-app/Kojeni/Kojeni.xcodeproj`. Tu obalovou úroveň akceptujeme — pbxproj referencuje source soubory relativně, ruční „flatten" by rozbil cesty.
+
 ```
-kojeni-app/
-├── Kojeni.xcodeproj/                     ← Xcode project (vytvořen v Task 1)
-├── Kojeni/                               ← App target source
-│   ├── KojeniApp.swift                   ← @main, ModelContainer setup
-│   ├── App/
-│   │   └── RootView.swift                ← TabView shell (3 prázdné taby)
-│   ├── Models/
-│   │   ├── Enums.swift                   ← Breast, DiaperKind, PooConsistency
-│   │   ├── FeedingSession.swift          ← @Model
-│   │   ├── BreastChange.swift            ← @Model
-│   │   ├── DiaperEvent.swift             ← @Model
-│   │   ├── AppSettings.swift             ← @Model + first-launch helper
-│   │   └── FeedingSession+Segments.swift ← derived helper segments()
-│   ├── Features/
-│   │   ├── Home/HomeView.swift           ← placeholder "Domů"
-│   │   ├── History/HistoryView.swift     ← placeholder "Historie"
-│   │   ├── Settings/SettingsView.swift   ← placeholder "Nastavení"
-│   │   └── Onboarding/OnboardingSheet.swift  ← Stepper pro interval
-│   ├── Resources/
-│   │   ├── Assets.xcassets/              ← AccentColor + AppIcon placeholder
-│   │   └── cs.lproj/Localizable.strings  ← české klíče
-│   └── Info.plist                        ← portrait-only, locale cs
-├── KojeniTests/
-│   ├── Helpers/
-│   │   └── InMemoryContainer.swift       ← test helper pro ModelContainer
-│   └── Models/
-│       ├── EnumsTests.swift
-│       ├── FeedingSessionTests.swift
-│       ├── DiaperEventTests.swift
-│       └── AppSettingsTests.swift
-└── docs/                                 ← už existuje (spec + plans)
+kojeni-app/                                   ← git root (už existuje)
+├── docs/                                     ← už existuje (spec + plans)
+└── Kojeni/                                   ← Xcode wrapper (vytvoří Task 1)
+    ├── Kojeni.xcodeproj/
+    ├── Kojeni/                               ← App target source
+    │   ├── KojeniApp.swift                   ← @main, ModelContainer setup
+    │   ├── App/
+    │   │   └── RootView.swift                ← TabView shell (3 prázdné taby)
+    │   ├── Models/
+    │   │   ├── Enums.swift                   ← Breast, DiaperKind, PooConsistency
+    │   │   ├── FeedingSession.swift          ← @Model
+    │   │   ├── BreastChange.swift            ← @Model
+    │   │   ├── DiaperEvent.swift             ← @Model
+    │   │   ├── AppSettings.swift             ← @Model + first-launch helper
+    │   │   └── FeedingSession+Segments.swift ← derived helper segments()
+    │   ├── Features/
+    │   │   ├── Home/HomeView.swift           ← placeholder "Domů"
+    │   │   ├── History/HistoryView.swift     ← placeholder "Historie"
+    │   │   ├── Settings/SettingsView.swift   ← placeholder "Nastavení"
+    │   │   └── Onboarding/OnboardingSheet.swift  ← Stepper pro interval
+    │   ├── Resources/
+    │   │   ├── Assets.xcassets/              ← AccentColor + AppIcon placeholder
+    │   │   └── cs.lproj/Localizable.strings  ← české klíče
+    │   └── Info.plist                        ← portrait-only, locale cs
+    └── KojeniTests/
+        ├── Helpers/
+        │   └── InMemoryContainer.swift       ← test helper pro ModelContainer
+        └── Models/
+            ├── EnumsTests.swift
+            ├── FeedingSessionTests.swift
+            ├── DiaperEventTests.swift
+            └── AppSettingsTests.swift
 ```
 
 **Soubory, které se vytvoří v pozdějších plánech a v Plan 1 neexistují:** `Services/`, `AppIntents/`, `SharedAttributes/`, `KojeniWidget/` target.
@@ -53,17 +56,17 @@ kojeni-app/
 ## Task 1: Vytvořit Xcode projekt
 
 **Files:**
-- Create: `Kojeni.xcodeproj/` (přes Xcode UI)
+- Create: `Kojeni/Kojeni.xcodeproj/` (přes Xcode UI)
 - Create: `.gitignore`
 
-**Cíl:** Funkční Xcode projekt s App + Test targety, min iOS 17.0, portrait-only, otevírá se a sestaví prázdné šablonové view.
+**Cíl:** Funkční Xcode projekt s App + Test targety, min iOS 26.5, portrait-only, otevírá se a sestaví prázdné šablonové view.
 
-- [ ] **Step 1: Spusť Xcode 15.4+ a vytvoř nový projekt**
+- [ ] **Step 1: Spusť Xcode 26+ a vytvoř nový projekt**
 
 V Xcode: `File → New → Project…` → záložka **iOS** → šablona **App** → `Next`.
 
 Vyplň:
-- **Product Name:** `Kojeni`
+- **Product Name:** `Kojeni` ← **přesně tohle, CamelCase, bez pomlčky** (Swift module name pak bude `Kojeni`)
 - **Team:** tvůj Personal Team (free Apple ID)
 - **Organization Identifier:** `cz.zapletal`
 - **Bundle Identifier:** `cz.zapletal.kojeni` (vyplní se samo)
@@ -72,14 +75,16 @@ Vyplň:
 - **Storage:** `None` (SwiftData container nastavíme ručně v Task 8)
 - **Include Tests:** **zaškrtnuto** ✓
 
-Klikni `Next`. Když se zeptá kam uložit, vyber `/Users/pz/Documents/develop/kojeni-app/`. **Zruš zaškrtnutí "Create Git repository on my Mac"** — repozitář už existuje (commit f93686d).
+Klikni `Next`. Když se zeptá kam uložit, vyber `/Users/pz/Documents/develop/kojeni-app/`. **Zruš zaškrtnutí "Create Git repository on my Mac"** — repozitář už existuje.
 
 Klikni `Create`.
+
+Xcode vytvoří `kojeni-app/Kojeni/Kojeni.xcodeproj` (obalová složka `Kojeni/` je očekávaná — neflattenovat).
 
 - [ ] **Step 2: Nastav deployment target a portrait-only**
 
 V Xcode levém navigátoru klikni na projekt **Kojeni** → záložka **General** → sekce **Minimum Deployments**:
-- **iOS:** změň z výchozí na **17.0**
+- **iOS:** změň z výchozí na **26.5**
 
 Sekce **Deployment Info**:
 - **iPhone Orientation:** ponech jen `Portrait` (odznač Landscape Left/Right)
@@ -89,7 +94,7 @@ Záložka **Build Settings** → vyhledej `Targeted Device Family` → nastav na
 
 - [ ] **Step 3: Ověř že projekt jde sestavit**
 
-V Xcode horní liště vyber simulátor (např. **iPhone 15** s iOS 17.x) → klávesa **⌘ B**.
+V Xcode horní liště vyber libovolný iPhone simulátor s iOS 26.5+ → klávesa **⌘ B**.
 
 Expected: `Build Succeeded` v horní liště. Žádné errors.
 
@@ -125,12 +130,12 @@ Package.resolved
 
 ```bash
 cd /Users/pz/Documents/develop/kojeni-app
-git add .gitignore Kojeni.xcodeproj Kojeni KojeniTests
+git add .gitignore Kojeni/
 git status   # zkontroluj, že nezahrnuje build/, DerivedData/ ani *.xcuserstate
-git commit -m "chore: scaffold Xcode project (iOS 17+, portrait-only iPhone)"
+git commit -m "chore: scaffold Xcode project (iOS 26.5+, portrait-only iPhone)"
 ```
 
-Expected: 1 commit s šablonovými soubory `KojeniApp.swift`, `ContentView.swift`, test soubory.
+Expected: 1 commit s šablonovými soubory `KojeniApp.swift`, `ContentView.swift`, test soubory pod `Kojeni/`.
 
 ---
 
