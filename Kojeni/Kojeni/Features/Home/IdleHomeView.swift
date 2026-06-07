@@ -8,11 +8,21 @@ struct IdleHomeView: View {
     @Query(sort: \FeedingSession.endedAt, order: .reverse)
     private var allSessions: [FeedingSession]
 
+    @Query(sort: \DiaperEvent.at, order: .reverse)
+    private var allDiapers: [DiaperEvent]
+
     @Query private var settingsList: [AppSettings]
 
     @State private var showBreastPicker = false
     @State private var showDiaperSheet = false
     @State private var authorizationDenied = false
+
+    // Toast / feedback
+    @State private var toastText: String?
+    @State private var toastIcon: String = "checkmark.circle.fill"
+    @State private var toastTask: Task<Void, Never>?
+    @State private var lastSeenDiaperID: PersistentIdentifier?
+    @State private var feedbackTrigger = 0
 
     private var lastEndedSession: FeedingSession? {
         allSessions.first { $0.endedAt != nil }
@@ -20,7 +30,6 @@ struct IdleHomeView: View {
 
     private var settings: AppSettings? { settingsList.first }
 
-    /// Čas dalšího kojení = endedAt + interval
     private var nextFeedingDue: Date? {
         guard let last = lastEndedSession,
               let endedAt = last.endedAt,
@@ -28,27 +37,94 @@ struct IdleHomeView: View {
         return endedAt.addingTimeInterval(TimeInterval(interval * 60))
     }
 
+    // MARK: - Today's diaper stats
+
+    private var todayStart: Date { Calendar.current.startOfDay(for: .now) }
+    private var todayDiapers: [DiaperEvent] {
+        allDiapers.filter { $0.at >= todayStart }
+    }
+    private var todayPeeCount: Int { todayDiapers.filter { $0.kind == .pee }.count }
+    private var todayPooCount: Int { todayDiapers.filter { $0.kind == .poo }.count }
+    private var lastPeeToday: DiaperEvent? { todayDiapers.first { $0.kind == .pee } }
+    private var lastPooToday: DiaperEvent? { todayDiapers.first { $0.kind == .poo } }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                if authorizationDenied {
-                    permissionBanner
+        ZStack(alignment: .top) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    if authorizationDenied {
+                        permissionBanner
+                    }
+
+                    lastFeedingCard
+
+                    kojitButton
+                        .padding(.horizontal)
+                        .padding(.top, 4)
+
+                    diaperSection
+                        .padding(.top, 4)
                 }
-
-                lastFeedingCard
-
-                kojitButton
-                    .padding(.horizontal)
-                    .padding(.top, 4)
-
-                diaperSection
-                    .padding(.top, 4)
+                .padding(.vertical)
             }
-            .padding(.vertical)
+            .scrollIndicators(.hidden)
+
+            if let toastText {
+                toastView(text: toastText, icon: toastIcon)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.top, 4)
+                    .zIndex(10)
+            }
         }
-        .task { await checkAuthorization() }
+        .animation(.spring(duration: 0.3), value: toastText)
+        .sensoryFeedback(.success, trigger: feedbackTrigger)
+        .task {
+            await checkAuthorization()
+            lastSeenDiaperID = allDiapers.first?.persistentModelID
+        }
+        .onChange(of: allDiapers.first?.persistentModelID) { _, newID in
+            // Spawn toast pro každý nově přidaný DiaperEvent (i z DiaperSheet)
+            guard let newID, newID != lastSeenDiaperID else { return }
+            lastSeenDiaperID = newID
+            if let newest = allDiapers.first {
+                let toastForKind = newest.kind == .pee ? "Čůrání zaznamenáno" : "Kakání zaznamenáno"
+                showToast(toastForKind, icon: newest.kind == .pee ? "drop.fill" : "circle.hexagongrid.fill")
+            }
+        }
         .sheet(isPresented: $showBreastPicker) { BreastPickerSheet() }
         .sheet(isPresented: $showDiaperSheet) { DiaperSheet() }
+    }
+
+    // MARK: - Toast
+
+    private func showToast(_ text: String, icon: String) {
+        toastText = text
+        toastIcon = icon
+        feedbackTrigger &+= 1
+        toastTask?.cancel()
+        toastTask = Task {
+            try? await Task.sleep(nanoseconds: 1_800_000_000)
+            if !Task.isCancelled {
+                toastText = nil
+            }
+        }
+    }
+
+    private func toastView(text: String, icon: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .foregroundStyle(.white)
+            Text(text)
+                .font(.subheadline.bold())
+                .foregroundStyle(.white)
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .background(
+            Capsule()
+                .fill(.green.gradient)
+                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+        )
     }
 
     // MARK: - Last feeding card
@@ -57,7 +133,6 @@ struct IdleHomeView: View {
     private var lastFeedingCard: some View {
         if let last = lastEndedSession, let endedAt = last.endedAt {
             VStack(alignment: .leading, spacing: 16) {
-                // Header
                 HStack {
                     Label("Poslední kojení", systemImage: "figure.and.child.holdinghands")
                         .font(.subheadline.bold())
@@ -68,7 +143,6 @@ struct IdleHomeView: View {
                         .foregroundStyle(.tertiary)
                 }
 
-                // Časový interval kojení
                 HStack(spacing: 6) {
                     Image(systemName: "clock")
                         .foregroundStyle(.blue)
@@ -81,12 +155,10 @@ struct IdleHomeView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // Doba na každém prsu
                 breastBreakdown(for: last)
 
                 Divider()
 
-                // Další kojení
                 nextFeedingRow
             }
             .padding(16)
@@ -173,7 +245,7 @@ struct IdleHomeView: View {
         }
     }
 
-    // MARK: - Kojit button (zmenšeno)
+    // MARK: - Kojit button
 
     private var kojitButton: some View {
         Button(action: { showBreastPicker = true }) {
@@ -190,30 +262,76 @@ struct IdleHomeView: View {
 
     private var diaperSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Plenky")
-                .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
-                .padding(.horizontal)
+            HStack {
+                Text("Plenky")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("Dnes")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal)
 
             HStack(spacing: 10) {
-                Button(action: logPee) {
-                    Label("Čůrání", systemImage: "drop.fill")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                }
-                .buttonStyle(.bordered)
-                .tint(.blue)
+                diaperCard(
+                    label: "Čůrání",
+                    icon: "drop.fill",
+                    tint: .blue,
+                    count: todayPeeCount,
+                    lastAt: lastPeeToday?.at,
+                    action: logPee
+                )
 
-                Button(action: { showDiaperSheet = true }) {
-                    Label("Kakání", systemImage: "circle.hexagongrid.fill")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                }
-                .buttonStyle(.bordered)
-                .tint(.brown)
+                diaperCard(
+                    label: "Kakání",
+                    icon: "circle.hexagongrid.fill",
+                    tint: .brown,
+                    count: todayPooCount,
+                    lastAt: lastPooToday?.at,
+                    action: { showDiaperSheet = true }
+                )
             }
             .padding(.horizontal)
         }
+    }
+
+    private func diaperCard(label: String,
+                            icon: String,
+                            tint: Color,
+                            count: Int,
+                            lastAt: Date?,
+                            action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                HStack(spacing: 8) {
+                    Image(systemName: icon)
+                        .font(.subheadline)
+                    Text(label)
+                        .font(.subheadline.bold())
+                }
+
+                HStack(spacing: 6) {
+                    Text("\(count)×")
+                        .font(.title2.bold().monospacedDigit())
+                    if let lastAt {
+                        Text("•")
+                            .foregroundStyle(.secondary)
+                        Text(timeOnly(lastAt))
+                            .font(.subheadline.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("dnes 0×")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+        }
+        .tint(tint)
+        .buttonStyle(.bordered)
     }
 
     private var permissionBanner: some View {
@@ -262,6 +380,12 @@ struct IdleHomeView: View {
         return "\(h) h \(m) min"
     }
 
+    private func timeOnly(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f.string(from: date)
+    }
+
     private func timeRange(start: Date, end: Date) -> String {
         let cal = Calendar.current
         let formatter = DateFormatter()
@@ -269,8 +393,6 @@ struct IdleHomeView: View {
         formatter.dateFormat = "HH:mm"
         let startStr = formatter.string(from: start)
         let endStr = formatter.string(from: end)
-        // Pokud start a end jsou ve stejný den → "14:32–14:47"
-        // Jinak → "Včera 23:15 – Dnes 00:08"
         if cal.isDate(start, inSameDayAs: end) {
             return "\(startStr) – \(endStr)"
         }
@@ -334,6 +456,7 @@ struct IdleHomeView: View {
     private func logPee() {
         do {
             try DiaperService(context: modelContext).logPee()
+            // Toast/haptic se spustí přes .onChange(of: allDiapers.first?.id) níže.
         } catch {
             print("logPee failed: \(error)")
         }
@@ -352,31 +475,6 @@ struct IdleHomeView: View {
 #Preview("Empty") {
     IdleHomeView()
         .modelContainer(for: [FeedingSession.self, DiaperEvent.self, AppSettings.self], inMemory: true)
-        .environment(LiveActivityManager())
-        .environment(ReminderScheduler())
-}
-
-#Preview("With data") {
-    let container = try! ModelContainer(
-        for: FeedingSession.self, BreastChange.self, DiaperEvent.self, AppSettings.self,
-        configurations: .init(isStoredInMemoryOnly: true)
-    )
-    let context = ModelContext(container)
-    let settings = AppSettings(reminderIntervalMinutes: 180)
-    context.insert(settings)
-    let session = FeedingSession(
-        startedAt: Date.now.addingTimeInterval(-90 * 60),
-        initialBreast: .left
-    )
-    session.endedAt = Date.now.addingTimeInterval(-75 * 60)
-    let change = BreastChange(at: Date.now.addingTimeInterval(-82 * 60), to: .right)
-    change.session = session
-    session.breastChanges.append(change)
-    context.insert(session)
-    try! context.save()
-
-    return IdleHomeView()
-        .modelContainer(container)
         .environment(LiveActivityManager())
         .environment(ReminderScheduler())
 }
