@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0] — Plan 4: Reminders — 2026-06-07
+
+- `ReminderScheduler` service nad `UNUserNotificationCenter` (protocol-based pro test mockování).
+- `scheduleAfter(endedAt:intervalMinutes:)` — past-time triggery použijí immediate delivery (trigger=nil).
+- `cancelPending()` smaže pending podle stabilního identifieru.
+- `NotificationDelegate` routuje 3 akce (feeding-now/snooze-15/snooze-30) na callback closures.
+- Permission request integrován do OnboardingSheet (po tapu Hotovo).
+- SettingsView: Stepper intervalu (30–360 min, krok 15), Toggle reminders enabled, reschedule on change.
+- IdleHomeView: banner pokud reminders enabled v AppSettings ale systém je denied, s tlačítkem Open Settings.
+- StopFeedingIntent (Live Activity Stop) také rozplánuje nový reminder podle AppSettings.
+- "Krmím teď" pickup v RootView přes App Group UserDefaults flag.
+- 12 nových Swift Testing testů (5 schedule + 3 permission + 4 NotificationDelegate). Celkem 61.
+
 ## [0.3.0] — Plan 3: Live Activity — 2026-06-07
 
 - Widget Extension target `KojeniWidgetExtension` (folder `Kojeni/KojeniWidget/`).
