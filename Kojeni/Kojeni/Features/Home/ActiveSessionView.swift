@@ -46,6 +46,12 @@ struct ActiveSessionView: View {
                 .font(.system(size: 72, weight: .bold, design: .monospaced))
                 .monospacedDigit()
 
+            // Live progress card — bary pro každé prso, update každou sekundu.
+            TimelineView(.periodic(from: .now, by: 1.0)) { context in
+                progressCard(now: context.date)
+            }
+            .padding(.horizontal)
+
             Spacer()
 
             HStack(spacing: 10) {
@@ -158,6 +164,109 @@ struct ActiveSessionView: View {
     private var hasPumpedMl: Bool {
         if let ml = session.pumpedMl { return ml >= 0 }
         return false
+    }
+
+    // MARK: - Progress card
+
+    private func progressCard(now: Date) -> some View {
+        let durations = breastDurations(asOf: now)
+        let totalSecs = max(durations.left + durations.right, 1)
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "clock")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+                Text("Začalo v \(timeOnly(session.startedAt))")
+                    .font(.subheadline.bold())
+                Spacer()
+                Text(relativeFrom(session.startedAt, to: now))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            breastBar(label: "Levé", color: .blue,
+                      seconds: durations.left,
+                      fraction: durations.left / totalSecs)
+            breastBar(label: "Pravé", color: .purple,
+                      seconds: durations.right,
+                      fraction: durations.right / totalSecs)
+        }
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func breastBar(label: String, color: Color, seconds: Double, fraction: Double) -> some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.subheadline)
+                .frame(width: 48, alignment: .leading)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(color.opacity(0.15))
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(color.opacity(0.7))
+                        .frame(width: max(4, geo.size.width * fraction))
+                }
+            }
+            .frame(height: 8)
+            Text(durationFormatted(seconds))
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 72, alignment: .trailing)
+        }
+    }
+
+    private func breastDurations(asOf now: Date) -> (left: Double, right: Double) {
+        // Replikujeme `FeedingSession.segments()` ale s explicitním `now` aby
+        // TimelineView re-render dal čerstvé hodnoty bez čekání na save.
+        let changes = session.breastChanges.sorted { $0.at < $1.at }
+        var left: Double = 0
+        var right: Double = 0
+        var currentStart = session.startedAt
+        var currentBreast = session.initialBreast
+        for change in changes {
+            let secs = change.at.timeIntervalSince(currentStart)
+            switch currentBreast {
+            case .left:  left += secs
+            case .right: right += secs
+            }
+            currentStart = change.at
+            currentBreast = change.to
+        }
+        let tailSecs = now.timeIntervalSince(currentStart)
+        switch currentBreast {
+        case .left:  left += tailSecs
+        case .right: right += tailSecs
+        }
+        return (max(left, 0), max(right, 0))
+    }
+
+    private func timeOnly(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm"
+        return f.string(from: date)
+    }
+
+    private func relativeFrom(_ start: Date, to now: Date) -> String {
+        let secs = max(now.timeIntervalSince(start), 0)
+        if secs < 60 { return "před \(Int(secs)) s" }
+        let mins = Int(secs / 60)
+        if mins < 60 { return "před \(mins) min" }
+        let h = mins / 60
+        let m = mins % 60
+        if m == 0 { return "před \(h) h" }
+        return "před \(h) h \(m) min"
+    }
+
+    private func durationFormatted(_ seconds: Double) -> String {
+        if seconds < 60 { return "\(Int(seconds)) s" }
+        let mins = Int(seconds / 60)
+        if mins < 60 { return "\(mins) min" }
+        let h = mins / 60
+        let m = mins % 60
+        if m == 0 { return "\(h) h" }
+        return "\(h) h \(m) min"
     }
 
     private func label(for breast: Breast) -> String {
