@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0] — Plan 5: Historie — 2026-06-07
+
+- `HistoryView` se segmented pickerem 4 sub-views.
+- `TodayTimelineView` — 24h vertikální timeline dnešních eventů, sezení jako modré boxy, plenky jako tečky.
+- `WeeklyChartView` — Swift Charts stacked bar (7 dní), přepínač metriky Délka kojení / Počet plenek.
+- `SessionListView` — chronologický scroll list grupovaný po dnech, heterogeneous (sezení + plenky dohromady).
+- `StatisticsView` — 6 karet (sezení/den, ⌀ délka, ⌀ interval, plenek/den, suma ml/týden, sezení celkem).
+- `EditSessionSheet` — Form edit startedAt/endedAt/initialBreast/pumpedMl, smazání s confirmation.
+- `HistoryStatistics` value struct + `.compute(over:)` factory (8 unit testů).
+- 8 nových Swift Testing testů. Celkem 57.
+
 ## [0.3.0] — Plan 3: Live Activity — 2026-06-07
 
 - Widget Extension target `KojeniWidgetExtension` (folder `Kojeni/KojeniWidget/`).
