@@ -54,12 +54,17 @@ struct HistoryStatistics: Equatable {
             .sorted { ($0.endedAt ?? .distantPast) < ($1.endedAt ?? .distantPast) }
         var intervalsTotal: Double = 0
         var intervalCount = 0
-        for i in 0..<(sortedAsc.count - 1) where sortedAsc.count > 1 {
-            guard let endedAt = sortedAsc[i].endedAt else { continue }
-            let gap = sortedAsc[i+1].startedAt.timeIntervalSince(endedAt)
-            if gap > 0 {
-                intervalsTotal += gap
-                intervalCount += 1
+        // POZN.: `for i in 0..<(sortedAsc.count - 1) where ...` crashne pokud
+        // count == 0 (range 0..<-1 je invalid before `where` se vyhodnotí).
+        // Guard upfront.
+        if sortedAsc.count > 1 {
+            for i in 0..<(sortedAsc.count - 1) {
+                guard let endedAt = sortedAsc[i].endedAt else { continue }
+                let gap = sortedAsc[i+1].startedAt.timeIntervalSince(endedAt)
+                if gap > 0 {
+                    intervalsTotal += gap
+                    intervalCount += 1
+                }
             }
         }
         let avgInterval = intervalCount > 0

@@ -35,7 +35,9 @@ struct HistoryStatisticsTests {
     }
 
     @Test func two_sessions_interval_calculated() {
-        let t0 = Date(timeIntervalSinceReferenceDate: 0)
+        // V okně 7 dní (compute() filtruje na last 7d od now) — proto t0 leží
+        // v rámci posledních dnů, ne na epoch.
+        let t0 = Date.now.addingTimeInterval(-24 * 3600)  // 24h ago
         let s1 = makeSession(startedAt: t0, durationMinutes: 20)
         // Druhé sezení startuje 3h po konci prvního.
         let s2 = makeSession(startedAt: t0.addingTimeInterval(20 * 60 + 3 * 3600),
