@@ -3,12 +3,16 @@ import SwiftData
 
 struct IdleHomeView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(ReminderScheduler.self) private var reminderScheduler
 
     @Query(sort: \FeedingSession.endedAt, order: .reverse)
     private var allSessions: [FeedingSession]
 
+    @Query private var settingsList: [AppSettings]
+
     @State private var showBreastPicker = false
     @State private var showDiaperSheet = false
+    @State private var authorizationDenied = false
 
     private var lastEndedSession: FeedingSession? {
         allSessions.first { $0.endedAt != nil }
@@ -16,6 +20,10 @@ struct IdleHomeView: View {
 
     var body: some View {
         VStack(spacing: 24) {
+            if authorizationDenied {
+                permissionBanner
+            }
+
             lastFeedingHeader
                 .padding(.top)
 
@@ -34,6 +42,9 @@ struct IdleHomeView: View {
 
             diaperSection
                 .padding(.bottom)
+        }
+        .task {
+            await checkAuthorization()
         }
         .sheet(isPresented: $showBreastPicker) {
             BreastPickerSheet()
@@ -91,6 +102,36 @@ struct IdleHomeView: View {
         } catch {
             print("logPee failed: \(error)")
         }
+    }
+
+    private var permissionBanner: some View {
+        VStack(spacing: 4) {
+            Text("⚠️ Notifikace jsou vypnuté v systému")
+                .font(.subheadline.bold())
+            Text("Reminder kojení nemůže fungovat, dokud je nepovolíš.")
+                .font(.caption)
+            Button("Otevřít nastavení") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .foregroundStyle(.orange)
+        .padding(8)
+        .background(.orange.opacity(0.15))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal)
+    }
+
+    private func checkAuthorization() async {
+        guard let settings = settingsList.first, settings.remindersEnabled else {
+            authorizationDenied = false
+            return
+        }
+        let isAuth = await reminderScheduler.isAuthorized()
+        authorizationDenied = !isAuth
     }
 }
 
