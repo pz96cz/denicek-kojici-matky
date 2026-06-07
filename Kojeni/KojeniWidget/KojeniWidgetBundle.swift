@@ -11,8 +11,6 @@ import SwiftUI
 @main
 struct KojeniWidgetBundle: WidgetBundle {
     var body: some Widget {
-        KojeniWidget()
-        KojeniWidgetControl()
-        KojeniWidgetLiveActivity()
+        FeedingLiveActivity()
     }
 }

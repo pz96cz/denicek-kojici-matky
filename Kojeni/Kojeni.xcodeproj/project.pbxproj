@@ -56,7 +56,27 @@
 		2CA9985F2FD4C841009D608F /* Exceptions for "KojeniWidget" folder in "KojeniWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				FeedingLiveActivity.swift,
 				Info.plist,
+				KojeniWidgetBundle.swift,
+			);
+			target = 2CA998492FD4C840009D608F /* KojeniWidgetExtension */;
+		};
+		2CA9987A2FD57269009D608F /* Exceptions for "Kojeni" folder in "KojeniWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AppIntents/StopFeedingIntent.swift,
+				AppIntents/SwitchBreastIntent.swift,
+				Models/AppSettings.swift,
+				Models/BreastChange.swift,
+				Models/DiaperEvent.swift,
+				Models/Enums.swift,
+				Models/FeedingSession.swift,
+				"Models/FeedingSession+Segments.swift",
+				Services/FeedingService.swift,
+				Services/FeedingServiceError.swift,
+				SharedAttributes/AppGroup.swift,
+				SharedAttributes/FeedingAttributes.swift,
 			);
 			target = 2CA998492FD4C840009D608F /* KojeniWidgetExtension */;
 		};
@@ -65,6 +85,9 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2CA9978A2FD4A5C1009D608F /* Kojeni */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2CA9987A2FD57269009D608F /* Exceptions for "Kojeni" folder in "KojeniWidgetExtension" target */,
+			);
 			path = Kojeni;
 			sourceTree = "<group>";
 		};
