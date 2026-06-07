@@ -56,9 +56,7 @@
 		2CA9985F2FD4C841009D608F /* Exceptions for "KojeniWidget" folder in "KojeniWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				FeedingLiveActivity.swift,
 				Info.plist,
-				KojeniWidgetBundle.swift,
 			);
 			target = 2CA998492FD4C840009D608F /* KojeniWidgetExtension */;
 		};
