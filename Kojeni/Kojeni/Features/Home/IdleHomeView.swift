@@ -97,4 +97,5 @@ struct IdleHomeView: View {
 #Preview("Empty") {
     IdleHomeView()
         .modelContainer(for: [FeedingSession.self, DiaperEvent.self], inMemory: true)
+        .environment(LiveActivityManager())
 }

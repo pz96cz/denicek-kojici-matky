@@ -63,7 +63,10 @@ struct BreastPickerSheet: View {
     private func start(with breast: Breast) {
         do {
             let session = try FeedingService(context: modelContext).startSession(breast: breast)
-            // Start Live Activity — sessionID jako string z PersistentIdentifier
+            // sessionID je informativní (pro logging) — SwitchBreastIntent/StopFeedingIntent
+            // v Widget procesu (Plan 3 Tasks 8-9) dohledají aktivní sezení přes
+            // FetchDescriptor<FeedingSession>(predicate: #Predicate { $0.endedAt == nil }),
+            // ne přes ID lookup. PersistentIdentifier nemá stable string representation.
             let sessionID = String(describing: session.persistentModelID)
             liveActivity.start(
                 sessionID: sessionID,
@@ -81,4 +84,5 @@ struct BreastPickerSheet: View {
 #Preview {
     BreastPickerSheet()
         .modelContainer(for: [FeedingSession.self, BreastChange.self], inMemory: true)
+        .environment(LiveActivityManager())
 }

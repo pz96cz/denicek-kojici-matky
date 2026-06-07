@@ -22,4 +22,5 @@ struct HomeView: View {
 #Preview("Idle") {
     HomeView()
         .modelContainer(for: FeedingSession.self, inMemory: true)
+        .environment(LiveActivityManager())
 }
