@@ -11,10 +11,14 @@ struct KojeniApp: App {
             DiaperEvent.self,
             AppSettings.self,
         ])
+        // SwiftData store žije v App Group sandboxu — KojeniWidgetExtension
+        // čte/píše stejné DB přes App Intenty (Plan 3 Tasks 8-9).
+        // TODO(prod): před prvním reálným deployem zvážit migraci legacy
+        // default-sandbox store, pokud existuje na zařízení.
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            groupContainer: .identifier("group.cz.zapletal.kojeni")
+            groupContainer: .identifier(AppGroup.identifier)
         )
         do {
             return try ModelContainer(for: schema, configurations: [config])

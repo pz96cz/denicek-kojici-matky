@@ -240,7 +240,7 @@ git commit -m "chore(entitlements): App Group group.cz.zapletal.kojeni on both t
 
 **Files:** `Kojeni/Kojeni/KojeniApp.swift`
 
-**Cíl:** Hlavní app teď používá `ModelConfiguration(groupContainer: .identifier("group.cz.zapletal.kojeni"))`, aby SQLite store žil ve sdílené App Group sandbox. Dropujeme dosavadní dev data (akceptovaná migrace).
+**Cíl:** Hlavní app teď používá `ModelConfiguration(groupContainer: .identifier(AppGroup.identifier))`, aby SQLite store žil ve sdílené App Group sandbox. App Group ID centralizován v `Kojeni/SharedAttributes/AppGroup.swift` (`enum AppGroup { static let identifier = "group.cz.zapletal.kojeni" }`) — Tasks 8, 9, 10 ho z téhož místa importují, nedrží 4× duplikovaný string literál (typo risk). Dropujeme dosavadní dev data (akceptovaná migrace).
 
 - [ ] **Step 1: Erase simulator (smaže starý sandbox store)**
 
@@ -273,7 +273,7 @@ struct KojeniApp: App {
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            groupContainer: .identifier("group.cz.zapletal.kojeni")
+            groupContainer: .identifier(AppGroup.identifier)
         )
         do {
             return try ModelContainer(for: schema, configurations: [config])
@@ -896,7 +896,9 @@ Expected: 2 errory na missing intent typy. Build failed.
 
 **Cíl:** App Intent který se spustí v Widget Extension procesu (žádné odemykání telefonu). Otevře sdílený SwiftData container (přes App Group), zavolá `FeedingService.switchBreast()`, aktualizuje Live Activity.
 
-> **POZOR — bulk target membership.** Aby se App Intent kód zkompiloval i v KojeniWidget targetu, **všechny** typy, které importuje, musí být v KojeniWidget target membership. To jsou:
+> **POZOR — bulk target membership.** Aby se App Intent kód zkompiloval i v KojeniWidgetExtension targetu, **všechny** typy, které importuje, musí být v KojeniWidgetExtension target membership. To jsou:
+> - `Kojeni/SharedAttributes/AppGroup.swift` (Task 3 ho vytvořil — App Group identifier konstanta)
+> - `Kojeni/SharedAttributes/FeedingAttributes.swift` (Task 4 — ActivityKit attributes)
 > - `Kojeni/Models/Enums.swift` (Breast — možná už hotové v Task 7 Step 5)
 > - `Kojeni/Models/FeedingSession.swift`
 > - `Kojeni/Models/BreastChange.swift`
@@ -905,9 +907,8 @@ Expected: 2 errory na missing intent typy. Build failed.
 > - `Kojeni/Models/FeedingSession+Segments.swift`
 > - `Kojeni/Services/FeedingService.swift`
 > - `Kojeni/Services/FeedingServiceError.swift`
-> - `Kojeni/SharedAttributes/FeedingAttributes.swift` (už hotové v Task 4)
 >
-> V Xcode otevři každý z těchto souborů → File Inspector (pravý panel) → sekce **Target Membership** → zaškrtni **i KojeniWidget** (Kojeni nech zaškrtnuté). Pro efektivitu: select-all v navigátoru přes Shift+click, pak nastav obě targets v Inspectoru najednou.
+> V Xcode otevři každý z těchto souborů → File Inspector (pravý panel) → sekce **Target Membership** → zaškrtni **i KojeniWidgetExtension** (Kojeni nech zaškrtnuté). Pro efektivitu: select-all v navigátoru přes Shift+click, pak nastav obě targets v Inspectoru najednou.
 >
 > `DiaperService.swift` NEPOTŘEBUJE — App Intenty diaper neřeší.
 >
@@ -949,7 +950,7 @@ struct SwitchBreastIntent: LiveActivityIntent {
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            groupContainer: .identifier("group.cz.zapletal.kojeni")
+            groupContainer: .identifier(AppGroup.identifier)
         )
         let container = try ModelContainer(for: schema, configurations: [config])
         let context = ModelContext(container)
@@ -1043,7 +1044,7 @@ struct StopFeedingIntent: AppIntent {
         let config = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false,
-            groupContainer: .identifier("group.cz.zapletal.kojeni")
+            groupContainer: .identifier(AppGroup.identifier)
         )
         let container = try ModelContainer(for: schema, configurations: [config])
         let context = ModelContext(container)
@@ -1059,7 +1060,7 @@ struct StopFeedingIntent: AppIntent {
         // SwiftData PersistentIdentifier nelze přes UserDefaults serializovat přímo,
         // ale uložíme dvojici (Bool flag, sessionStart timestamp) — main app si
         // sezení dohledá podle endedAt v rozumném okně.
-        let defaults = UserDefaults(suiteName: "group.cz.zapletal.kojeni")
+        let defaults = UserDefaults(suiteName: AppGroup.identifier)
         defaults?.set(true, forKey: "pendingPumpedMlSheet")
         defaults?.set(ended.endedAt?.timeIntervalSinceReferenceDate ?? 0,
                       forKey: "pendingPumpedMlSheet.endedAt")
@@ -1174,7 +1175,7 @@ struct RootView: View {
     }
 
     private func handleAppGroupPickup() {
-        let defaults = UserDefaults(suiteName: "group.cz.zapletal.kojeni")
+        let defaults = UserDefaults(suiteName: AppGroup.identifier)
         guard defaults?.bool(forKey: "pendingPumpedMlSheet") == true else { return }
 
         defaults?.set(false, forKey: "pendingPumpedMlSheet")
