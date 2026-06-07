@@ -23,11 +23,10 @@ struct StopFeedingIntent: AppIntent {
             DiaperEvent.self,
             AppSettings.self,
         ])
-        let config = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false,
-            groupContainer: .identifier(AppGroup.identifier)
-        )
+        // App Group sandbox sdílení nefunguje přes AltStore re-sign na free
+        // Apple ID — používáme default container (intent běží v main procesu
+        // díky openAppWhenRun).
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         let container = try ModelContainer(for: schema, configurations: [config])
 
         let endedAt = try await MainActor.run { () -> Date? in
@@ -45,10 +44,11 @@ struct StopFeedingIntent: AppIntent {
         // SwiftData PersistentIdentifier nelze přes UserDefaults serializovat přímo,
         // ale uložíme dvojici (Bool flag, sessionEnd timestamp) — main app si
         // sezení dohledá podle endedAt v rozumném okně.
-        let defaults = UserDefaults(suiteName: AppGroup.identifier)
-        defaults?.set(true, forKey: "pendingPumpedMlSheet")
-        defaults?.set(endedAt.timeIntervalSinceReferenceDate,
-                      forKey: "pendingPumpedMlSheet.endedAt")
+        // Intent běží v main app procesu (openAppWhenRun), standard UserDefaults OK
+        let defaults = UserDefaults.standard
+        defaults.set(true, forKey: "pendingPumpedMlSheet")
+        defaults.set(endedAt.timeIntervalSinceReferenceDate,
+                     forKey: "pendingPumpedMlSheet.endedAt")
         log.info("Set pendingPumpedMlSheet flag")
 
         // Schedule next reminder podle aktuálních AppSettings

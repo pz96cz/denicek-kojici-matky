@@ -16,14 +16,13 @@ struct KojeniApp: App {
             DiaperEvent.self,
             AppSettings.self,
         ])
-        // SwiftData store žije v App Group sandboxu — KojeniWidgetExtension
-        // čte/píše stejné DB přes App Intenty (Plan 3 Tasks 8-9).
-        // TODO(prod): před prvním reálným deployem zvážit migraci legacy
-        // default-sandbox store, pokud existuje na zařízení.
+        // DIAG: App Group container vypnutý kvůli AltStore re-sign entitlement
+        // limitaci na free Apple ID. Widget proces tím přestane sdílet store,
+        // Live Activity tlačítka přestanou fungovat. Main app se spustí.
+        // Po ověření že to byl důvod crashe → reactivate + vyřešit signing.
         let config = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false,
-            groupContainer: .identifier(AppGroup.identifier)
+            isStoredInMemoryOnly: false
         )
         do {
             return try ModelContainer(for: schema, configurations: [config])
@@ -58,8 +57,8 @@ struct KojeniApp: App {
     private func handleFeedingNowAction() {
         // Notifikace „Krmím teď" → nastavíme flag, RootView ho přečte
         // při scenePhase=.active a startne sezení s default prsem.
-        let defaults = UserDefaults(suiteName: AppGroup.identifier)
-        defaults?.set(true, forKey: "pendingStartFromReminder")
+        // UserDefaults.standard — App Group sdílení nefunguje přes AltStore re-sign.
+        UserDefaults.standard.set(true, forKey: "pendingStartFromReminder")
     }
 
     private func handleSnoozeAction(minutes: Int) {

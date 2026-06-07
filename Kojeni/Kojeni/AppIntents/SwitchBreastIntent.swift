@@ -5,31 +5,29 @@ import Foundation
 import OSLog
 
 /// Tlačítko „Přehodit prso" v Live Activity.
-/// Běží v Widget Extension procesu — neotvírá hlavní app, mamka nemusí odemykat.
-struct SwitchBreastIntent: LiveActivityIntent {
+/// `openAppWhenRun = true` — App Group container nelze sdílet přes AltStore re-sign
+/// na free Apple ID, takže intent musí běžet v main app procesu kde má přístup
+/// k default sandbox containeru. Mamka musí odemknout telefon.
+struct SwitchBreastIntent: AppIntent {
 
     static var title: LocalizedStringResource = "Přehodit prso"
+    static var openAppWhenRun: Bool = true
 
     init() {}
 
     func perform() async throws -> some IntentResult {
         let log = Logger(subsystem: "cz.zapletal.kojeni", category: "SwitchBreastIntent")
 
-        // 1. Sdílený SwiftData container (App Group)
+        // Default sandbox container (sdílený s main app jelikož intent běží v main procesu)
         let schema = Schema([
             FeedingSession.self,
             BreastChange.self,
             DiaperEvent.self,
             AppSettings.self,
         ])
-        let config = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false,
-            groupContainer: .identifier(AppGroup.identifier)
-        )
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         let container = try ModelContainer(for: schema, configurations: [config])
 
-        // 2. Přepnutí přes FeedingService (Plan 2)
         let newBreast = try await MainActor.run { () -> Breast? in
             let context = ModelContext(container)
             let service = FeedingService(context: context)
@@ -40,15 +38,12 @@ struct SwitchBreastIntent: LiveActivityIntent {
             return .result()
         }
 
-        // 3. Update Live Activity in-place
         if let activity = Activity<FeedingAttributes>.activities.first {
             await activity.update(.init(
                 state: FeedingAttributes.ContentState(currentBreast: newBreast),
                 staleDate: nil
             ))
             log.info("LA updated currentBreast=\(newBreast.rawValue)")
-        } else {
-            log.warning("No Live Activity to update")
         }
 
         return .result()

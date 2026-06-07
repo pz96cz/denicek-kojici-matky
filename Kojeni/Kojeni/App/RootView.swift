@@ -44,7 +44,10 @@ struct RootView: View {
     }
 
     private func handleAppGroupPickup() {
-        let defaults = UserDefaults(suiteName: AppGroup.identifier)
+        // Pickup z UserDefaults.standard — App Group nelze sdílet přes AltStore re-sign
+        // na free Apple ID. Intenty (openAppWhenRun) běží v main procesu, takže
+        // standard suite je pro routing dostatečný.
+        let defaults: UserDefaults? = .standard
 
         // Pickup: notifikace "Krmím teď" → startni sezení s default prsem
         if defaults?.bool(forKey: "pendingStartFromReminder") == true {
