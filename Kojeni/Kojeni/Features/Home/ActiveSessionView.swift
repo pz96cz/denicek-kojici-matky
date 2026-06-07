@@ -4,6 +4,9 @@ import SwiftData
 struct ActiveSessionView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(LiveActivityManager.self) private var liveActivity
+    @Environment(ReminderScheduler.self) private var reminderScheduler
+
+    @Query private var settingsList: [AppSettings]
 
     let session: FeedingSession
 
@@ -97,6 +100,15 @@ struct ActiveSessionView: View {
             endedSessionID = ended.persistentModelID
             showPumpedMlSheet = true
             Task { await liveActivity.end() }
+            if let settings = settingsList.first, settings.remindersEnabled,
+               let endedAt = ended.endedAt {
+                Task {
+                    try? await reminderScheduler.scheduleAfter(
+                        endedAt: endedAt,
+                        intervalMinutes: settings.reminderIntervalMinutes
+                    )
+                }
+            }
         } catch {
             print("endSession failed: \(error)")
         }
