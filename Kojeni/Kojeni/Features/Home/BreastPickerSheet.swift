@@ -4,6 +4,7 @@ import SwiftData
 struct BreastPickerSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(LiveActivityManager.self) private var liveActivity
 
     @Query(sort: \FeedingSession.endedAt, order: .reverse)
     private var allSessions: [FeedingSession]
@@ -61,7 +62,14 @@ struct BreastPickerSheet: View {
 
     private func start(with breast: Breast) {
         do {
-            _ = try FeedingService(context: modelContext).startSession(breast: breast)
+            let session = try FeedingService(context: modelContext).startSession(breast: breast)
+            // Start Live Activity — sessionID jako string z PersistentIdentifier
+            let sessionID = String(describing: session.persistentModelID)
+            liveActivity.start(
+                sessionID: sessionID,
+                startedAt: session.startedAt,
+                currentBreast: breast
+            )
             dismiss()
         } catch {
             print("startSession failed: \(error)")

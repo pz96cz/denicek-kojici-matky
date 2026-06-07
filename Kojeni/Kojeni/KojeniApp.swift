@@ -4,6 +4,8 @@ import SwiftData
 @main
 struct KojeniApp: App {
 
+    @State private var liveActivity = LiveActivityManager()
+
     let container: ModelContainer = {
         let schema = Schema([
             FeedingSession.self,
@@ -30,6 +32,7 @@ struct KojeniApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(liveActivity)
         }
         .modelContainer(container)
     }

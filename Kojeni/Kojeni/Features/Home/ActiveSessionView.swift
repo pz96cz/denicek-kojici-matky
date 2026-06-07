@@ -3,6 +3,7 @@ import SwiftData
 
 struct ActiveSessionView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(LiveActivityManager.self) private var liveActivity
 
     let session: FeedingSession
 
@@ -63,7 +64,9 @@ struct ActiveSessionView: View {
 
     private func switchBreast() {
         do {
-            _ = try FeedingService(context: modelContext).switchBreast()
+            guard let newBreast = try FeedingService(context: modelContext).switchBreast()
+            else { return }
+            Task { await liveActivity.update(currentBreast: newBreast) }
         } catch {
             print("switchBreast failed: \(error)")
         }
@@ -75,6 +78,7 @@ struct ActiveSessionView: View {
             else { return }   // idempotent no-op — žádná sezení k ukončení
             endedSessionID = ended.persistentModelID
             showPumpedMlSheet = true
+            Task { await liveActivity.end() }
         } catch {
             print("endSession failed: \(error)")
         }
