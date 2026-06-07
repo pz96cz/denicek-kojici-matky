@@ -23,7 +23,7 @@ struct FeedingLiveActivity: Widget {
                         Text("Prso \(label(for: context.state.currentBreast))")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Text(timerInterval: context.attributes.sessionStartedAt...Date.distantFuture,
+                        Text(timerInterval: context.attributes.sessionStartedAt...context.attributes.sessionStartedAt.addingTimeInterval(8 * 3600),
                              countsDown: false)
                             .font(.title3.monospacedDigit())
                     }
@@ -47,7 +47,7 @@ struct FeedingLiveActivity: Widget {
                 Text(label(for: context.state.currentBreast))
                     .font(.caption.bold())
             } compactTrailing: {
-                Text(timerInterval: context.attributes.sessionStartedAt...Date.distantFuture,
+                Text(timerInterval: context.attributes.sessionStartedAt...context.attributes.sessionStartedAt.addingTimeInterval(8 * 3600),
                      countsDown: false)
                     .font(.caption.monospacedDigit())
                     .frame(maxWidth: 44)
@@ -69,7 +69,10 @@ struct FeedingLiveActivity: Widget {
                     .foregroundStyle(.secondary)
             }
 
-            Text(timerInterval: context.attributes.sessionStartedAt...Date.distantFuture,
+            // 8h horní hranice — odpovídá iOS Live Activity max lifetime.
+            // Bez ní `Text(timerInterval:)` formátuje divně jelikož distantFuture
+            // je miliardy let.
+            Text(timerInterval: context.attributes.sessionStartedAt...context.attributes.sessionStartedAt.addingTimeInterval(8 * 3600),
                  countsDown: false)
                 .font(.system(size: 44, weight: .bold, design: .monospaced))
                 .monospacedDigit()
