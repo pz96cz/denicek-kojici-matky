@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0] — Plan 3: Live Activity — 2026-06-07
+
+- Widget Extension target `KojeniWidgetExtension` (folder `Kojeni/KojeniWidget/`).
+- `FeedingAttributes` (ActivityKit) sdíleno mezi main app a widget targety přes bulk target membership (Build Phases > Compile Sources).
+- `LiveActivityManager` — `@MainActor @Observable` wrapper kolem `Activity<FeedingAttributes>` API. request/update/end + re-attach po restartu.
+- `SwitchBreastIntent` jako `LiveActivityIntent` — běží v widget procesu, žádné odemykání. Otevře sdílený SwiftData container přes App Group, volá `FeedingService.switchBreast()`, aktualizuje LA.
+- `StopFeedingIntent` jako `AppIntent openAppWhenRun = true` — otevře main app, předá routing signál (UserDefaults v App Group suite) pro otevření `PumpedMlSheet`.
+- App Group `group.cz.zapletal.kojeni` centralizovaný v `AppGroup.identifier` konstantě (Kojeni + KojeniWidgetExtension entitlements).
+- Re-attach LA + pickup PumpedMlSheet routing přes `scenePhase = .active` v `RootView`. Explicit `FetchDescriptor` (ne stale `@Query`) na cross-process write z widget procesu.
+- Banner v `ActiveSessionView` pro sezení > 8h (LA expired).
+- Swift 6 nonisolated fixes na pure value types (AppGroup, FeedingAttributes).
+- 4 nové Swift Testing testy (3 FeedingAttributes Codable + 1 LiveActivityManager rev start guard). Celkem 49.
+
 ## [0.2.0] — Plan 2: Feeding core — 2026-06-06
 
 - `FeedingService` se startSession (s invariantem žádných 2 aktivních), switchBreast (alternuje), endSession (idempotentní).
