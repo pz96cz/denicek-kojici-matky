@@ -16,7 +16,15 @@ final class LiveActivityManager {
 
     init() {
         // Re-attach: pokud po restartu existuje LA pro běžící sezení, napoj se.
-        currentActivity = Activity<FeedingAttributes>.activities.first
+        // INVARIANT: appka má vždy max 1 LA. Single-owner pattern — manager je
+        // držen v @State na KojeniApp (Plan 3 Task 6), takže existuje jen jedna
+        // instance po dobu Scene. Re-attach na `.activities.first` je deterministický
+        // pokud invariant drží.
+        let running = Activity<FeedingAttributes>.activities
+        if running.count > 1 {
+            log.warning("Unexpected: \(running.count) Live Activities running, attaching to first")
+        }
+        currentActivity = running.first
         if let act = currentActivity {
             log.info("Re-attached to running activity \(act.id)")
         }
