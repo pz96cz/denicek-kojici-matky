@@ -87,4 +87,5 @@ struct BreastPickerSheet: View {
     BreastPickerSheet()
         .modelContainer(for: [FeedingSession.self, BreastChange.self], inMemory: true)
         .environment(LiveActivityManager())
+        .environment(ReminderScheduler())
 }
