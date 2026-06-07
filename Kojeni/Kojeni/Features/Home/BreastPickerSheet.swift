@@ -5,6 +5,7 @@ struct BreastPickerSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(LiveActivityManager.self) private var liveActivity
+    @Environment(ReminderScheduler.self) private var reminderScheduler
 
     @Query(sort: \FeedingSession.endedAt, order: .reverse)
     private var allSessions: [FeedingSession]
@@ -68,6 +69,7 @@ struct BreastPickerSheet: View {
             // FetchDescriptor<FeedingSession>(predicate: #Predicate { $0.endedAt == nil }),
             // ne přes ID lookup. PersistentIdentifier nemá stable string representation.
             let sessionID = String(describing: session.persistentModelID)
+            reminderScheduler.cancelPending()
             liveActivity.start(
                 sessionID: sessionID,
                 startedAt: session.startedAt,
@@ -85,4 +87,5 @@ struct BreastPickerSheet: View {
     BreastPickerSheet()
         .modelContainer(for: [FeedingSession.self, BreastChange.self], inMemory: true)
         .environment(LiveActivityManager())
+        .environment(ReminderScheduler())
 }

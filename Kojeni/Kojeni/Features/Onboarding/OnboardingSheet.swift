@@ -4,6 +4,7 @@ import SwiftData
 struct OnboardingSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(ReminderScheduler.self) private var reminderScheduler
 
     @State private var intervalMinutes: Int = AppSettings.defaultIntervalMinutes
 
@@ -61,14 +62,20 @@ struct OnboardingSheet: View {
     }
 
     private func saveAndClose() {
-        do {
-            let settings = try AppSettings.loadOrCreate(in: modelContext)
-            settings.reminderIntervalMinutes = intervalMinutes
-            try modelContext.save()
-            dismiss()
-        } catch {
-            print("OnboardingSheet save failed: \(error)")
-            dismiss()
+        Task {
+            do {
+                let settings = try AppSettings.loadOrCreate(in: modelContext)
+                settings.reminderIntervalMinutes = intervalMinutes
+
+                let granted = (try? await reminderScheduler.requestAuthorization()) ?? false
+                settings.remindersEnabled = granted
+
+                try modelContext.save()
+                dismiss()
+            } catch {
+                print("OnboardingSheet save failed: \(error)")
+                dismiss()
+            }
         }
     }
 }

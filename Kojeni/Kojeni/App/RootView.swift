@@ -45,6 +45,13 @@ struct RootView: View {
 
     private func handleAppGroupPickup() {
         let defaults = UserDefaults(suiteName: AppGroup.identifier)
+
+        // Pickup: notifikace "Krmím teď" → startni sezení s default prsem
+        if defaults?.bool(forKey: "pendingStartFromReminder") == true {
+            defaults?.set(false, forKey: "pendingStartFromReminder")
+            startFromReminder()
+        }
+
         guard defaults?.bool(forKey: "pendingPumpedMlSheet") == true else { return }
 
         defaults?.set(false, forKey: "pendingPumpedMlSheet")
@@ -65,6 +72,20 @@ struct RootView: View {
         if let candidate {
             pumpedMlPickupSessionID = candidate.persistentModelID
             showPickupSheet = true
+        }
+    }
+
+    private func startFromReminder() {
+        // Default prso: opačné než poslední session, fallback .left.
+        let descriptor = FetchDescriptor<FeedingSession>(
+            sortBy: [SortDescriptor(\.endedAt, order: .reverse)]
+        )
+        let recent = (try? modelContext.fetch(descriptor)) ?? []
+        let suggested: Breast = recent.first(where: { $0.endedAt != nil })?.currentBreast.opposite ?? .left
+        do {
+            _ = try FeedingService(context: modelContext).startSession(breast: suggested)
+        } catch {
+            print("startFromReminder failed: \(error)")
         }
     }
 }
