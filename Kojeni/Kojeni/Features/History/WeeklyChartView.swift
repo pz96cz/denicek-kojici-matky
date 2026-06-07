@@ -6,7 +6,7 @@ struct WeeklyChartView: View {
 
     enum Metric: String, CaseIterable, Identifiable {
         case feedingDuration = "Délka kojení"
-        case diaperCount     = "Počet plenek"
+        case diaperCount     = "Vyprázdňování"
         var id: String { rawValue }
     }
 

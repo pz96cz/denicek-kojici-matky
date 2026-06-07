@@ -18,22 +18,35 @@ struct StatisticsView: View {
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
 
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 12),
-                    GridItem(.flexible(), spacing: 12)
-                ], spacing: 12) {
+                sectionHeader("Kojení")
+                LazyVGrid(columns: gridCols, spacing: 12) {
                     statCard(title: "Sezení/den",
                              value: formatted(stats.avgSessionsPerDay, decimals: 1))
                     statCard(title: "⌀ délka",
                              value: "\(Int(stats.avgSessionDurationMinutes.rounded())) min")
                     statCard(title: "⌀ interval",
                              value: formattedInterval(Int(stats.avgIntervalBetweenSessionsMinutes.rounded())))
-                    statCard(title: "Plenek/den",
-                             value: formatted(stats.avgDiapersPerDay, decimals: 1))
                     statCard(title: "Σ ml týden",
                              value: "\(stats.totalPumpedMl) ml")
                     statCard(title: "Sezení celkem",
                              value: "\(stats.sessionCount)")
+                }
+                .padding(.horizontal)
+
+                sectionHeader("Vyprázdňování")
+                LazyVGrid(columns: gridCols, spacing: 12) {
+                    statCard(title: "Počet čůrání",
+                             value: "\(stats.peeCount)",
+                             tint: .blue)
+                    statCard(title: "Počet kakání",
+                             value: "\(stats.pooCount)",
+                             tint: .brown)
+                    statCard(title: "⌀ čůrání/den",
+                             value: formatted(stats.avgPeesPerDay, decimals: 1),
+                             tint: .blue)
+                    statCard(title: "⌀ kakání/den",
+                             value: formatted(stats.avgPoosPerDay, decimals: 1),
+                             tint: .brown)
                 }
                 .padding(.horizontal)
             }
@@ -41,13 +54,27 @@ struct StatisticsView: View {
         }
     }
 
-    private func statCard(title: String, value: String) -> some View {
+    private var gridCols: [GridItem] {
+        [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+    }
+
+    private func sectionHeader(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline.bold())
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.top, 4)
+    }
+
+    private func statCard(title: String, value: String, tint: Color = .primary) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Text(value)
                 .font(.title2.bold().monospacedDigit())
+                .foregroundStyle(tint == .primary ? Color.primary : tint)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

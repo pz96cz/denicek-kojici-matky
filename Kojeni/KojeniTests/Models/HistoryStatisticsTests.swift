@@ -19,7 +19,10 @@ struct HistoryStatisticsTests {
         #expect(stats.avgSessionsPerDay == 0)
         #expect(stats.avgSessionDurationMinutes == 0)
         #expect(stats.avgIntervalBetweenSessionsMinutes == 0)
-        #expect(stats.avgDiapersPerDay == 0)
+        #expect(stats.avgPeesPerDay == 0)
+        #expect(stats.avgPoosPerDay == 0)
+        #expect(stats.peeCount == 0)
+        #expect(stats.pooCount == 0)
         #expect(stats.totalPumpedMl == 0)
         #expect(stats.sessionCount == 0)
     }
@@ -67,13 +70,33 @@ struct HistoryStatisticsTests {
         #expect(stats.totalPumpedMl == 80)
     }
 
-    @Test func avgDiapersPerDay_simple() {
+    @Test func avgPeesPerDay_simple() {
         let now = Date.now
         let diapers = (0..<14).map { i in
             DiaperEvent(at: now.addingTimeInterval(-Double(i * 12 * 3600)), kind: .pee)
         }
         let stats = HistoryStatistics.compute(sessions: [], diapers: diapers, over: 7)
-        #expect(stats.avgDiapersPerDay == 2.0)
+        #expect(stats.avgPeesPerDay == 2.0)
+        #expect(stats.avgPoosPerDay == 0)
+        #expect(stats.peeCount == 14)
+        #expect(stats.pooCount == 0)
+    }
+
+    @Test func splits_pee_and_poo_counts() {
+        let now = Date.now
+        var diapers: [DiaperEvent] = []
+        // 7 čůrání, 3 kakání
+        for i in 0..<7 {
+            diapers.append(DiaperEvent(at: now.addingTimeInterval(-Double(i * 3600)), kind: .pee))
+        }
+        for i in 0..<3 {
+            diapers.append(DiaperEvent(at: now.addingTimeInterval(-Double(i * 3600)), kind: .poo, consistency: .normal))
+        }
+        let stats = HistoryStatistics.compute(sessions: [], diapers: diapers, over: 7)
+        #expect(stats.peeCount == 7)
+        #expect(stats.pooCount == 3)
+        #expect(stats.avgPeesPerDay == 1.0)
+        #expect(abs(stats.avgPoosPerDay - 3.0/7.0) < 0.001)
     }
 
     @Test func compute_filters_to_window() {
