@@ -19,10 +19,8 @@ struct FeedingLiveActivity: Widget {
                         .font(.title2)
                 }
                 DynamicIslandExpandedRegion(.center) {
-                    VStack(spacing: 2) {
-                        Text("Prso \(label(for: context.state.currentBreast))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    VStack(spacing: 4) {
+                        breastBadge(for: context.state.currentBreast)
                         Text(timerInterval: context.attributes.sessionStartedAt...context.attributes.sessionStartedAt.addingTimeInterval(8 * 3600),
                              countsDown: false)
                             .font(.title3.monospacedDigit())
@@ -64,9 +62,7 @@ struct FeedingLiveActivity: Widget {
                 Text("🤱 Kojení")
                     .font(.headline)
                 Spacer()
-                Text("Prso \(label(for: context.state.currentBreast))")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                breastBadge(for: context.state.currentBreast)
             }
 
             // 8h horní hranice — odpovídá iOS Live Activity max lifetime.
@@ -101,5 +97,29 @@ struct FeedingLiveActivity: Widget {
         case .left:  return "L"
         case .right: return "P"
         }
+    }
+
+    /// Plný název prsa pro Lock Screen + center expanded Dynamic Island.
+    private func fullName(for breast: Breast) -> String {
+        switch breast {
+        case .left:  return "Levé prso"
+        case .right: return "Pravé prso"
+        }
+    }
+
+    /// Colored badge — modré pro levé, fialové pro pravé.
+    @ViewBuilder
+    private func breastBadge(for breast: Breast) -> some View {
+        let tint: Color = breast == .left ? .blue : .purple
+        HStack(spacing: 4) {
+            Image(systemName: "drop.fill")
+                .font(.caption2)
+            Text(fullName(for: breast))
+                .font(.subheadline.bold())
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(tint.gradient))
     }
 }
