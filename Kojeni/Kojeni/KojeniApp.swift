@@ -11,7 +11,11 @@ struct KojeniApp: App {
             DiaperEvent.self,
             AppSettings.self,
         ])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let config = ModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            groupContainer: .identifier("group.cz.zapletal.kojeni")
+        )
         do {
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
