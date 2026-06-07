@@ -12,6 +12,7 @@ struct EditSessionSheet: View {
     @State private var initialBreast: Breast
     @State private var pumpedMl: Int
     @State private var hasPumpedMl: Bool
+    @State private var note: String
     @State private var showDeleteConfirm = false
 
     init(session: FeedingSession) {
@@ -21,6 +22,7 @@ struct EditSessionSheet: View {
         _initialBreast = State(initialValue: session.initialBreast)
         _pumpedMl = State(initialValue: session.pumpedMl ?? 0)
         _hasPumpedMl = State(initialValue: session.pumpedMl != nil)
+        _note = State(initialValue: session.note ?? "")
     }
 
     var body: some View {
@@ -54,6 +56,12 @@ struct EditSessionSheet: View {
                                 .monospacedDigit()
                         }
                     }
+                }
+
+                Section("Poznámka") {
+                    TextField("Poznámka k sezení (volitelné)",
+                              text: $note, axis: .vertical)
+                        .lineLimit(3...6)
                 }
 
                 Section {
@@ -90,6 +98,8 @@ struct EditSessionSheet: View {
         session.endedAt = endedAt
         session.initialBreast = initialBreast
         session.pumpedMl = hasPumpedMl ? pumpedMl : nil
+        let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        session.note = trimmedNote.isEmpty ? nil : trimmedNote
 
         do {
             try modelContext.save()

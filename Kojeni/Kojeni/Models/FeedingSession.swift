@@ -8,6 +8,8 @@ final class FeedingSession {
     var endedAt: Date?
     var initialBreast: Breast
     var pumpedMl: Int?
+    /// Volitelná poznámka — píše mamka během sezení nebo později v EditSessionSheet.
+    var note: String?
 
     @Relationship(deleteRule: .cascade, inverse: \BreastChange.session)
     var breastChanges: [BreastChange] = []

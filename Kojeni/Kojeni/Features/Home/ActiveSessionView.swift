@@ -12,6 +12,7 @@ struct ActiveSessionView: View {
 
     @State private var showPumpedMlSheet = false
     @State private var endedSessionID: PersistentIdentifier?
+    @State private var showNoteSheet = false
 
     private var sessionOverEightHours: Bool {
         Date.now.timeIntervalSince(session.startedAt) > 8 * 3600
@@ -46,6 +47,9 @@ struct ActiveSessionView: View {
 
             Spacer()
 
+            noteRow
+                .padding(.horizontal)
+
             VStack(spacing: 12) {
                 Button(action: switchBreast) {
                     Text("Přehodit prso")
@@ -69,11 +73,47 @@ struct ActiveSessionView: View {
             .padding(.horizontal)
             .padding(.bottom)
         }
+        .sheet(isPresented: $showNoteSheet) {
+            NoteSheet(session: session)
+        }
         .sheet(isPresented: $showPumpedMlSheet) {
             if let id = endedSessionID {
                 PumpedMlSheet(sessionID: id)
             }
         }
+    }
+
+    /// Inline řada nad tlačítky — preview poznámky pokud existuje, jinak prompt.
+    private var noteRow: some View {
+        Button(action: { showNoteSheet = true }) {
+            HStack(spacing: 10) {
+                Image(systemName: session.note?.isEmpty == false
+                      ? "note.text" : "square.and.pencil")
+                    .foregroundStyle(.orange)
+                VStack(alignment: .leading, spacing: 2) {
+                    if let note = session.note, !note.isEmpty {
+                        Text(note)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    } else {
+                        Text("Přidat poznámku")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
     }
 
     private func label(for breast: Breast) -> String {
