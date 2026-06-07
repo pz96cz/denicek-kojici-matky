@@ -49,31 +49,30 @@ struct IdleHomeView: View {
     private var lastPooToday: DiaperEvent? { todayDiapers.first { $0.kind == .poo } }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if authorizationDenied {
-                        permissionBanner
-                    }
-
-                    lastFeedingCard
-
-                    kojitButton
-                        .padding(.horizontal)
-                        .padding(.top, 4)
-
-                    diaperSection
-                        .padding(.top, 4)
+        ScrollView {
+            VStack(spacing: 20) {
+                if authorizationDenied {
+                    permissionBanner
                 }
-                .padding(.vertical)
-            }
-            .scrollIndicators(.hidden)
 
+                lastFeedingCard
+
+                kojitButton
+                    .padding(.horizontal)
+                    .padding(.top, 4)
+
+                diaperSection
+                    .padding(.top, 4)
+            }
+            .padding(.vertical)
+        }
+        .scrollIndicators(.automatic)
+        .overlay(alignment: .top) {
             if let toastText {
                 toastView(text: toastText, icon: toastIcon)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .padding(.top, 4)
-                    .zIndex(10)
+                    .allowsHitTesting(false)   // toast nesmí blokovat tapy/scroll
             }
         }
         .animation(.spring(duration: 0.3), value: toastText)
