@@ -4,7 +4,11 @@ import ActivityKit
 /// Atributy Live Activity pro běžící kojení.
 /// `Self` (statická metadata) jsou neměnné po dobu existence aktivity.
 /// `ContentState` (dynamická data) se aktualizují přes `activity.update(...)`.
-struct FeedingAttributes: ActivityAttributes {
+///
+/// `nonisolated` — typ je pure value-type bez state, používá ho App Intent
+/// (async perform v non-MainActor kontextu). Xcode 26 default MainActor isolation
+/// by jinak generovala Swift 6 warning na conformance access z widget procesu.
+nonisolated struct FeedingAttributes: ActivityAttributes {
 
     /// PersistentIdentifier sezení jako string — App Intent z widgetu si přes něj
     /// dohledá `FeedingSession` v shared SwiftData containeru.

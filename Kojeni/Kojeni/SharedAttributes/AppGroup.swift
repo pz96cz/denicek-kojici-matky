@@ -9,5 +9,8 @@ import Foundation
 /// aby ho App Intents (Plan 3 Tasks 8, 9) mohly použít při konstrukci sdíleného
 /// SwiftData containeru bez rizika typo v duplikovaném string literálu.
 enum AppGroup {
-    static let identifier = "group.cz.zapletal.kojeni"
+    // `nonisolated` aby App Intent (async perform v non-MainActor kontextu)
+    // mohl konstantu číst bez Swift 6 actor-isolation warning.
+    // String je Sendable; `(unsafe)` netřeba.
+    nonisolated static let identifier = "group.cz.zapletal.kojeni"
 }
