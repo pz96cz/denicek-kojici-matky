@@ -44,8 +44,8 @@ struct WeeklyChartView: View {
                     }
                 }
                 return [
-                    DataPoint(day: day, category: "L", value: leftMinutes),
-                    DataPoint(day: day, category: "P", value: rightMinutes)
+                    DataPoint(day: day, category: "Levé prso", value: leftMinutes),
+                    DataPoint(day: day, category: "Pravé prso", value: rightMinutes)
                 ]
             }
 
@@ -60,6 +60,16 @@ struct WeeklyChartView: View {
                     DataPoint(day: day, category: "Kakání", value: Double(pooCount))
                 ]
             }
+        }
+    }
+
+    /// Custom barvy odpovídající Idle home view (modrá L / fialová P, modrá Čůrání / hnědá Kakání).
+    private var colorMapping: KeyValuePairs<String, Color> {
+        switch metric {
+        case .feedingDuration:
+            return ["Levé prso": .blue, "Pravé prso": .purple]
+        case .diaperCount:
+            return ["Čůrání": .blue, "Kakání": .brown]
         }
     }
 
@@ -78,8 +88,11 @@ struct WeeklyChartView: View {
                     x: .value("Den", point.day, unit: .day),
                     y: .value(metric == .feedingDuration ? "min" : "počet", point.value)
                 )
+                .position(by: .value("Kategorie", point.category))   // side-by-side, ne stacked
                 .foregroundStyle(by: .value("Kategorie", point.category))
+                .cornerRadius(3)
             }
+            .chartForegroundStyleScale(colorMapping)
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day)) { value in
                     AxisGridLine()
