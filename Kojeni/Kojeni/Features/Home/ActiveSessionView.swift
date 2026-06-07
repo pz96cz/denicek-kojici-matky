@@ -10,8 +10,26 @@ struct ActiveSessionView: View {
     @State private var showPumpedMlSheet = false
     @State private var endedSessionID: PersistentIdentifier?
 
+    private var sessionOverEightHours: Bool {
+        Date.now.timeIntervalSince(session.startedAt) > 8 * 3600
+    }
+
     var body: some View {
         VStack(spacing: 32) {
+            if sessionOverEightHours {
+                VStack(spacing: 4) {
+                    Text("⚠️ Sezení běží déle než 8 hodin")
+                        .font(.subheadline.bold())
+                    Text("Live Activity vypršela. Zkontroluj a případně uprav.")
+                        .font(.caption)
+                }
+                .foregroundStyle(.orange)
+                .padding(8)
+                .background(.orange.opacity(0.15))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal)
+            }
+
             Spacer()
 
             Text("Prso: \(label(for: session.currentBreast))")
