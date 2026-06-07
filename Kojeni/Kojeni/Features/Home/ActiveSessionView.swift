@@ -13,6 +13,7 @@ struct ActiveSessionView: View {
     @State private var showPumpedMlSheet = false
     @State private var endedSessionID: PersistentIdentifier?
     @State private var showNoteSheet = false
+    @State private var showPumpedMlInline = false
 
     private var sessionOverEightHours: Bool {
         Date.now.timeIntervalSince(session.startedAt) > 8 * 3600
@@ -47,8 +48,11 @@ struct ActiveSessionView: View {
 
             Spacer()
 
-            noteRow
-                .padding(.horizontal)
+            HStack(spacing: 10) {
+                noteRow
+                pumpedMlRow
+            }
+            .padding(.horizontal)
 
             VStack(spacing: 12) {
                 Button(action: switchBreast) {
@@ -76,6 +80,9 @@ struct ActiveSessionView: View {
         .sheet(isPresented: $showNoteSheet) {
             NoteSheet(session: session)
         }
+        .sheet(isPresented: $showPumpedMlInline) {
+            PumpedMlSheet(sessionID: session.persistentModelID)
+        }
         .sheet(isPresented: $showPumpedMlSheet) {
             if let id = endedSessionID {
                 PumpedMlSheet(sessionID: id)
@@ -83,37 +90,74 @@ struct ActiveSessionView: View {
         }
     }
 
-    /// Inline řada nad tlačítky — preview poznámky pokud existuje, jinak prompt.
+    /// Karta pro poznámku — preview pokud existuje, jinak prompt.
     private var noteRow: some View {
         Button(action: { showNoteSheet = true }) {
-            HStack(spacing: 10) {
-                Image(systemName: session.note?.isEmpty == false
-                      ? "note.text" : "square.and.pencil")
-                    .foregroundStyle(.orange)
-                VStack(alignment: .leading, spacing: 2) {
-                    if let note = session.note, !note.isEmpty {
-                        Text(note)
-                            .font(.subheadline)
-                            .foregroundStyle(.primary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                    } else {
-                        Text("Přidat poznámku")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: hasNote ? "note.text" : "square.and.pencil")
+                        .foregroundStyle(.orange)
+                        .font(.subheadline)
+                    Text("Poznámka")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    Spacer()
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                if let note = session.note, !note.isEmpty {
+                    Text(note)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                } else {
+                    Text("Přidat")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
             .background(Color(.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
+    }
+
+    /// Karta pro odstříknuté mléko — ml hodnotu pokud zadaná, jinak prompt.
+    private var pumpedMlRow: some View {
+        Button(action: { showPumpedMlInline = true }) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: hasPumpedMl ? "drop.fill" : "drop")
+                        .foregroundStyle(.cyan)
+                        .font(.subheadline)
+                    Text("Odstříknuto")
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                if let ml = session.pumpedMl, ml >= 0 {
+                    Text("\(ml) ml")
+                        .font(.subheadline.monospacedDigit().bold())
+                        .foregroundStyle(.primary)
+                } else {
+                    Text("Přidat")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var hasNote: Bool { (session.note ?? "").isEmpty == false }
+    private var hasPumpedMl: Bool {
+        if let ml = session.pumpedMl { return ml >= 0 }
+        return false
     }
 
     private func label(for breast: Breast) -> String {
